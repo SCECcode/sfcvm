@@ -15,27 +15,3 @@ contact:
   - email: software@scec.org
     name: "The SCEC Software project sfcvm"
 references:
-  - authors:
-      - name: "CVMH"
-    date-released: 2022-07-26
-    doi: TBD
-    repository-code: "https://github.com/SCECcode/cvmh.git"
-    title: "CVMH Model"
-    type: software
-    version: 15.1.0
-  - authors:
-      - family-names: "Plesch"
-        given-names: "A."
-      - family-names: "Thurber"
-        given-names: "C.H."
-      - family-names: "Tape"
-        given-names: "C."
-      - family-names: "Shaw"
-        given-names: "J.H."
-    doi: TBD
-    keywords: CVM, UCVM, velocity models, tomography, web, basins
-    scope: "Cite this paper if you want to reference the model"
-    title: "The SCEC CVM effort: new basin models, enhanced access and tomographic updates"
-    type: conference
-    year: 2021
-

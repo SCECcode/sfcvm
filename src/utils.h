@@ -1,10 +1,9 @@
-#ifndef VX_UTILS_H
-#define VX_UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 /* Byte order */
 typedef enum { VX_BYTEORDER_LSB = 0, 
                VX_BYTEORDER_MSB } vx_byteorder_t;
-
 
 /* Determine system endian */
 int vx_system_endian();

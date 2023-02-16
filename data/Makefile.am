@@ -8,10 +8,10 @@ AM_LDFLAGS = ${LDFLAGS}
 install:
 	mkdir -p ${prefix}/data
 	cp ./config ${prefix}/data
-	cp -R ./cvmhlabn ${prefix}/data
+	cp -R ./sfcvm ${prefix}/data
 	chmod og+r ${prefix}/data/config
-	chmod -R og+r ${prefix}/data/cvmhlabn
-	chmod og+x ${prefix}/data/cvmhlabn
+	chmod -R og+r ${prefix}/data/sfcvm
+	chmod og+x ${prefix}/data/sfcvm
 
 dist-clean :
-	rm -rf cvmhlabn
+	rm -rf sfcvm

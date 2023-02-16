@@ -1,7 +1,5 @@
 /** 
     utils.c - Commonly used math and interpolation routines.
-
-    01/2011: PES: Initial implementation
 **/
 
 #include <stdlib.h>
@@ -21,14 +19,10 @@ int vx_system_endian()
   }
 }
 
-
 /*
  * vx_minf
- *
  * Return min(v1, v2)
- *
  * Get minimum of two float values
- *
  */
 float vx_minf(float v1, float v2)
 {

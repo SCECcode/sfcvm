@@ -31,7 +31,7 @@ else
 AM_CONDITIONAL(UCVM, true)
 UCVM_CFLAGS="-I$UCVM_INSTALL_PATH/include"
 UCVM_LDFLAGS="-L$UCVM_INSTALL_PATH/lib -lucvm -dynamic  -L$UCVM_INSTALL_PATH/lib/proj/lib -lproj -L$UCVM_INSTALL_PATH/lib/hdf5/lib -lhdf5 
--L$UCVM_INSTALL_PATH/lib/geomodelgrids/lib -lXXX
+-L$UCVM_INSTALL_PATH/lib/geomodelgrids/lib -labc
 -lpthread -lm -ldl"
 fi
 
@@ -41,6 +41,6 @@ fi
 CFLAGS="$CFLAGS"
 LDFLAGS="$LDFLAGS"
 
-AC_CONFIG_FILES([Makefile data/Makefile src/Makefile test/Makefile test_validation/Makefile])
+AC_CONFIG_FILES([Makefile data/Makefile src/Makefile geomodelgrids/Makefile])
 
 AC_OUTPUT

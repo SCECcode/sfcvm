@@ -8,7 +8,7 @@ import getopt
 import sys
 import subprocess
 
-model = "CVMHLABN"
+model = "SFCVM"
 
 if sys.version_info.major >= (3) :
   from urllib.request import urlopen
@@ -60,11 +60,11 @@ def main():
 
         if (variable == 'model_data_path') :
             path = val + '/' + model
-            bpath = val + '/' + 'CVMHBN'
+            bpath = val + '/' + 'SFCVM'
             continue
         if (variable == 'model_dir') :
             mdir = "./"+val
-            bdir = "./"+"cvmhbn"
+            bdir = "./"+"sfcvm"
             continue
         continue
     if path == "" :
@@ -77,19 +77,11 @@ def main():
 
     subprocess.check_call(["mkdir", "-p", "./"+mdir])
 
-    blist=['base@@', 'CVM_CM_TAG@@', 'CVM_CM.vo', 'CVM_CM_VP@@', 'CVM_CM_VS@@', 'CVMSM_flags@@', 'CVMSM_tag66@@', 'CVMSM_vp66@@', 'CVMSM_vs66@@', 'interfaces.vo', 'model_top@@', 'moho@@', 'topo_dem@@' ]
-
-    for b in blist :
-        ffname = bdir + "/" + b
-        fname = mdir + "/" + b
-        url = bpath + "/" + ffname
-        print(url, fname)
-        try:
-          download_urlfile(url,fname)
-        except:
-          sys.exit(1)
-    
-    flist= [ 'CVMHB-Los-Angeles-Basin.vo', 'CVMHB-Los-Angeles-Basin_tag61_basin@@', 'CVMHB-Los-Angeles-Basin_vp63_basin@@', 'CVMHB-Los-Angeles-Basin_vs63_basin@@', 'CVMHB-Los-Angeles-Basin.dat']
+    flist= [ 'CVMHB-Los-Angeles-Basin.vo', \
+             'CVMHB-Los-Angeles-Basin_tag61_basin@@', \
+             'CVMHB-Los-Angeles-Basin_vp63_basin@@', \
+             'CVMHB-Los-Angeles-Basin_vs63_basin@@', \
+             'CVMHB-Los-Angeles-Basin.dat']
 
     for f in flist :
         fname = mdir + "/" +f
