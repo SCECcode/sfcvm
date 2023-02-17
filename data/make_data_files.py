@@ -99,7 +99,7 @@ def main():
 
     for fname in klist :
         deppath=deplist[fname]
-        newfname="../"+fname
+        newfname="../dependencies/"+fname
         url = deppath + "/" + fname
         print(url, newfname)
         try: 
