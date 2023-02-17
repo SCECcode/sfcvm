@@ -7,6 +7,7 @@
 import getopt
 import sys
 import subprocess
+import json
 
 model = "SFCVM"
 
@@ -40,6 +41,7 @@ def main():
     # Set our variable defaults.
     path = ""
     bpath = ""
+    deplist = ""
 
     try:
         fp = open('./config','r')
@@ -66,6 +68,9 @@ def main():
             mdir = "./"+val
             bdir = "./"+"sfcvm"
             continue
+        if (variable == 'model_dependency') :
+            deplist = json.loads(val) 
+            continue
         continue
     if path == "" :
         print("ERROR: failed to find variables from config file")
@@ -75,13 +80,10 @@ def main():
 
     print("\nDownloading model dataset\n")
 
-    subprocess.check_call(["mkdir", "-p", "./"+mdir])
+    subprocess.check_call(["mkdir", "-p", mdir])
 
-    flist= [ 'CVMHB-Los-Angeles-Basin.vo', \
-             'CVMHB-Los-Angeles-Basin_tag61_basin@@', \
-             'CVMHB-Los-Angeles-Basin_vp63_basin@@', \
-             'CVMHB-Los-Angeles-Basin_vs63_basin@@', \
-             'CVMHB-Los-Angeles-Basin.dat']
+## model's data file
+    flist= [ 'oUSGS_SFCVM_v21-1_detailed.h5' ]
 
     for f in flist :
         fname = mdir + "/" +f
@@ -89,6 +91,19 @@ def main():
         print(url, fname)
         try: 
           download_urlfile(url,fname)
+        except:
+          sys.exit(1)
+
+## model's dependencies
+    klist= deplist.keys()
+
+    for fname in klist :
+        deppath=deplist[fname]
+        newfname="../"+fname
+        url = deppath + "/" + fname
+        print(url, newfname)
+        try: 
+          download_urlfile(url,newfname)
         except:
           sys.exit(1)
 

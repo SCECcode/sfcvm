@@ -22,10 +22,27 @@ UCVM_LDFLAGS=
 else
 AM_CONDITIONAL(UCVM, true)
 UCVM_CFLAGS="-I$UCVM_INSTALL_PATH/include"
-UCVM_LDFLAGS="-L$UCVM_INSTALL_PATH/lib -lucvm -dynamic -L/Users/mei/SCEC/TARGET_UCVM/ucvm_install/lib/proj/lib -lproj -lpthread -lm -ldl"
+UCVM_LDFLAGS="-L$UCVM_INSTALL_PATH/lib -lucvm -dynamic -L/Users/mei/SCEC/TARGET_UCVM/ucvm_install/lib/proj/lib -lproj -lpthread -L/Users/mei/SCEC/TARGET_UCVM/ucvm_install/lib/hdf5/lib -lhdf5 -lm -ldl"
 fi
 
-# Checks for library functions.
+
+dnl GEOMODELGRIDS (required)
+if test "$install_geomodelgrids" = yes ; then
+  GEOMODELGRIDS_INCLUDES=""
+  GEOMODELGRIDS_LDFLAGS="-lgeomodelgrids"
+else
+  if test "$with_geomodelgrids_incdir" != no ; then
+    GEOMODELGRIDS_INCLUDES="-I$with_geomodelgrids_incdir"
+  fi
+  if test "$with_geomodelgrids_libdir" != no ; then
+    GEOMODELGRIDS_LDFLAGS="-L$with_geomodelgrids_libdir -lgeomodelgrids"
+  fi
+  SCEC_GEOMODELGRIDS_HEADER
+  SCEC_GEOMODELGRIDS_LIB
+fi
+AC_SUBST(GEOMODELGRIDS_INCLUDES)
+AC_SUBST(GEOMODELGRIDS_LDFLAGS)
+
 
 # Set final CFLAGS and LDFLAGS
 CFLAGS="$CFLAGS $UCVM_LDFAGS"

@@ -19,15 +19,16 @@
 #include <math.h>
 #include <stdarg.h>
 
-#include "vx_sub_sfcvm.h"
-
 // Constants
 #ifndef M_PI
 	/** Defines pi */
 	#define M_PI 3.14159265358979323846
 #endif
 
-#define VX_NO_DATA -99999.0
+typedef enum { ZMODE_ELEV = 0, 
+               ZMODE_DEPTH } zmode_t;
+
+#define NO_DATA -99999.0
 #define SFCVM_CONFIG_MAX 1000
 
 // Structures

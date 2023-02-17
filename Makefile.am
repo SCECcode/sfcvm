@@ -1,7 +1,7 @@
 # GNU Automake config
 
-SUBDIRS = data src dependencies 
-INCLUDES = $(default_includes)
+SUBDIRS = data dependencies src
 
 ACLOCAL_AMFLAGS = -I m4
+
 

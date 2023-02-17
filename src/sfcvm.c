@@ -19,7 +19,6 @@ const char *sfcvm_version_string = "SFCVM";
 
 /** The config of the model */
 char *sfcvm_config_string;
-int sfcvm_config_sz=0;
 
 int sfcvm_is_initialized = 0;
 
@@ -40,6 +39,8 @@ double sfcvm_total_width_m = 0;
 /*************************************/
 
 int sfcvm_ucvm_debug=0;
+int sfcvm_force_depth=0;
+int sfcvm_zmode=0; // ZMODE_DEPTH or ZMODE_ELEVATION
 
 /**
  * Initializes the SFCVM plugin model within the UCVM framework. In order to initialize
@@ -79,15 +80,8 @@ int sfcvm_init(const char *dir, const char *label) {
 	   sprintf(sfcvm_data_directory, "%s/model/%s/data/%s", dir, label, sfcvm_configuration->model_dir);
         }
 
-        /* Init vx */
-        if (vx_setup(sfcvm_data_directory, sfcvm_configuration->interp) != 0) {
-          return UCVM_CODE_ERROR;
-        }
-
         /* setup config_string  interp=0 or interp= 1*/
         sprintf(sfcvm_config_string,"config = %s, interp = %d\n",configbuf, sfcvm_configuration->interp);
-        sfcvm_config_sz=2;
-
 	// Let everyone know that we are initialized and ready for business.
 	sfcvm_is_initialized = 1;
 
@@ -111,21 +105,20 @@ int sfcvm_setparam(int id, int param, ...)
       zmode = va_arg(ap,int);
       switch (zmode) {
         case UCVM_COORD_GEO_DEPTH:
-          sfcvm_zmode = VX_ZMODE_DEPTH;
+          sfcvm_zmode = ZMODE_DEPTH;
           if(sfcvm_ucvm_debug) fprintf(stderr,"calling sfcvm_setparam >>  depth\n");
           break;
         case UCVM_COORD_GEO_ELEV:
 /*****
 even if ucvm_query set elevation mode, still need to run as depth
 from ucvm_query, the depth is already proprocessed with (ucvm_surface - elevation)
-          sfcvm_zmode = VX_ZMODE_ELEV;
+          sfcvm_zmode = ZMODE_ELEV;
 ****/
           if(sfcvm_ucvm_debug) fprintf(stderr,"calling sfcvm_setparam >>  elevation\n");
           break;
         default:
           break;
        }
-       vx_setzmode(sfcvm_zmode);
        break;
   }
   va_end(ap);
@@ -146,12 +139,10 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
   // setup >> points -> entry (assume always Q in depth)
   // retrieve >> entry -> data
 
-//  if(sfcvm_zmode == VX_ZMODE_ELEV) { fprintf(stderr,"sfcvm_query: ZMODE= elev\n"); }
-//  if(sfcvm_zmode == VX_ZMODE_DEPTH) { fprintf(stderr,"sfcvm_query: ZMODE= dep\n"); }
+//  if(sfcvm_zmode == ZMODE_ELEV) { fprintf(stderr,"sfcvm_query: ZMODE= elev\n"); }
+//  if(sfcvm_zmode == ZMODE_DEPTH) { fprintf(stderr,"sfcvm_query: ZMODE= dep\n"); }
 
   for(int i=0; i<numpoints; i++) {
-      vx_entry_t entry;
-      float vx_surf=0.0;
 
 if(sfcvm_ucvm_debug) {
 fprintf(stderr,"\n **** get incoming DATA ..(%lf %lf %lf) \n",
@@ -167,80 +158,13 @@ fprintf(stderr,"\n **** get incoming DATA ..(%lf %lf %lf) \n",
      */
 
       /* Force depth mode if directed and point is above surface */
-      if ((sfcvm_force_depth) && (sfcvm_zmode == VX_ZMODE_ELEV) &&
+      if ((sfcvm_force_depth) && (sfcvm_zmode == ZMODE_ELEV) &&
           (points[i].depth < 0.0)) {
-fprintf(stderr," **** in HERE looking for a new surface ..\n");
-        /* Setup point to query */
-        entry.coor[0]=points[i].longitude;
-        entry.coor[1]=points[i].latitude;
-        entry.coor_type = sfcvm_zmode;
-        vx_getsurface(&(entry.coor[0]), entry.coor_type, &vx_surf);
-     
-        if(sfcvm_ucvm_debug) {
-           fprintf(stderr, "sfcvm_query: surface is %f vs initial query depth %f\n", vx_surf, points[i].depth);
-        }
-        if (vx_surf - VX_NO_DATA < 0.01) {
-          /* Fallback to using UCVM topo */
-          entry.coor[2]=points[i].depth;
-        } else {
-          if(sfcvm_ucvm_debug) {
-            fprintf(stderr,"POTENTIAL problem if sfcvm surface differ from UCVM surface !!!\n");
-          }
-          entry.coor[2]=vx_surf - points[i].depth;
-        }
-      } else {
-        /* Setup with direct point to query */
-        entry.coor[0]=points[i].longitude;
-        entry.coor[1]=points[i].latitude;
-        entry.coor[2]=points[i].depth;
       }
 
-      /* In case we got anything like degrees */
-      if ((entry.coor[0]<360.) && (fabs(entry.coor[1])<90)) {
-        entry.coor_type = VX_COORD_GEO;
-      } else {
-        entry.coor_type = VX_COORD_UTM;
-      }
-
-      /* Query the point */
-      int rc=vx_getcoord(&entry);
-
-      if(sfcvm_ucvm_debug) {
-        printf("X||lonlat(%.6f %.6f %.4f)\n",
-               entry.coor[0], entry.coor[1], entry.coor[2]);
-        /* AP: Let's provide the computed UTM coordinates as well */
-        printf("X||utm(%.2f %.2f)\n", entry.coor_utm[0], entry.coor_utm[1]);
-        printf("X||elev_cell(%10.2f %11.2f)\n", entry.elev_cell[0], entry.elev_cell[1]);
-        printf("X||topo(%.2f) mtop(%.2f) base(%.2f) moho(%.2f)\n", entry.topo, entry.mtop, entry.base, entry.moho);
-        printf("X||src(%s) vel_cell(%.2f %.2f %.2f) provenance(%.2f)\n", VX_SRC_NAMES[entry.data_src], 
-            entry.vel_cell[0], entry.vel_cell[1], entry.vel_cell[2], entry.provenance);
-        printf("X||vp(%.4f) vs(%.4f) rho(%.4f)\n", entry.vp, entry.vs, entry.rho);
-      }
-
-      if(sfcvm_ucvm_debug) {
-        fprintf(stderr,">>> a point..rc(%d)->",rc);
-        switch(entry.data_src) {
-          case VX_SRC_NR: {fprintf(stderr,"GOT VX_SRC_NR\n"); break; }
-          case VX_SRC_HR: {fprintf(stderr,"GOT VX_SRC_HR\n"); break; }
-          case VX_SRC_LR: {fprintf(stderr,"GOT VX_SRC_LR\n"); break; }
-          case VX_SRC_CM: {fprintf(stderr,"GOT VX_SRC_CM\n"); break; }
-          case VX_SRC_TO: {fprintf(stderr,"GOT VX_SRC_TO\n"); break; }
-          case VX_SRC_BK: {fprintf(stderr,"GOT VX_SRC_BK\n"); break; }
-          case VX_SRC_GT: {fprintf(stderr,"GOT VX_SRC_GT\n"); break; }
-          default: {fprintf(stderr,"???\n"); break; }
-        }
-      }
-
-      // 1 is bad, 0 is good and anything not in HR region/ie sfcvm 
-      if(rc || entry.data_src != VX_SRC_HR) { 
-        data[i].vp=-1;
-        data[i].vs=-1;
-        data[i].rho=-1;
-        } else {
-          data[i].vp=entry.vp;
-          data[i].vs=entry.vs;
-          data[i].rho=entry.rho;
-      }
+      data[i].vp=-1;
+      data[i].vs=-1;
+      data[i].rho=-1;
 
   }
   return UCVM_CODE_SUCCESS;
@@ -252,14 +176,11 @@ fprintf(stderr," **** in HERE looking for a new surface ..\n");
  * @return UCVM_CODE_SUCCESS
  */
 int sfcvm_finalize() {
-        vx_cleanup();
-
 	sfcvm_is_initialized = 0;
 
 	free(sfcvm_configuration);
 	free(sfcvm_velocity_model);
 	free(sfcvm_config_string);
-	sfcvm_config_sz=0;
 
 	return UCVM_CODE_SUCCESS;
 }
@@ -274,7 +195,6 @@ int sfcvm_finalize() {
 int sfcvm_version(char *ver, int len)
 {
   //const char *sfcvm_version_string = "SFCVM";
-  vx_version(ver);
   return UCVM_CODE_SUCCESS;
 }
 
@@ -289,7 +209,6 @@ int sfcvm_config(char **config, int *sz)
   int len=strlen(sfcvm_config_string);
   if(len > 0) {
     *config=sfcvm_config_string;
-    *sz=sfcvm_config_sz;
     return UCVM_CODE_SUCCESS;
   }
   return UCVM_CODE_ERROR;
@@ -365,7 +284,6 @@ void sfcvm_print_error(char *err) {
  * @return Success or failure.
  */
 int model_init(const char *dir, const char *label) {
-
 	return sfcvm_init(dir, label);
 }
 
