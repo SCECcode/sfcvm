@@ -8,13 +8,19 @@ all: installed_geomodelgrids
 # ------------------------------------------------------------------------------
 geomodelgrids:
 if INSTALL_GEOMODELGRIDS
-GEOMODELGRIDS_TARBALL=geomodelgrids.tar.gz
+GEOMODELGRIDS_TARBALL=${srcdir}/geomodelgrids.tar.gz
 	if [ ! -f "$(GEOMODELGRIDS_TARBALL)" ]; then $(CURL) -L -O $(GEOMODELGRIDS_URL)/$(GEOMODELGRIDS_TARBALL); fi
 	$(TAR) -xf $(GEOMODELGRIDS_TARBALL)
 	$(MKDIR_P) geomodelgrids-build
-	cd geomodelgrids-build && \
-		../geomodelgrids-$(GEOMODELGRIDS_VER)/configure \
+	cd ${abs_builddir}/geomodelgrids && \
+		aclocal && \
+		autoreconf -if && \
+		automake --add-missing
+	cd ${abs_builddir}/geomodelgrids-build && \
+		${abs_builddir}/geomodelgrids/configure \
 			--prefix=$(prefix) \
+			--with-hdf5-incdir=$(UCVM_HDF5_INC) --with-hdf5-libdir=$(UCVM_HDF5_LIB) \
+			--with-proj-incdir=$(UCVM_PROJ_INC) --with-proj-libdir=$(UCVM_PROJ_LIB) \
 			CC=$(CC) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"; \
 		make -C libsrc && make install -C libsrc && \
 		touch $(abs_builddir)/installed_$@
@@ -26,3 +32,5 @@ endif
 installed_geomodelgrids:
 	$(MAKE) $(AM_MAKEFLAGS) geomodelgrids
 
+clean: 
+	rm -rf geomodelgrids installed_geomodelgrids geomodelgrids-build

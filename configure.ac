@@ -2,13 +2,12 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([SFCVM],[1.0],[software@scec.org])
-AC_CONFIG_AUX_DIR([./aux-config])
-AC_CONFIG_SRCDIR([src])
 AM_INIT_AUTOMAKE([foreign no-exeext])
 AC_PROG_RANLIB
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_MKDIR_P
 
 # Checks for libraries.
 
@@ -16,37 +15,68 @@ AC_PROG_CC
 AC_C_CONST
 
 if test x"$UCVM_INSTALL_PATH" = x; then
+    UCVM_DUMDUM=x"$UCVM_INSTALL_PATH"
+    UCVM_DUM=x"$UCVM_SRC_PATH"
+fi
+
+if test x"$UCVM_INSTALL_PATH" = x; then
 AM_CONDITIONAL(UCVM, false)
 UCVM_CFLAGS=
 UCVM_LDFLAGS=
+UCVM_HDF5_INC=
+UCVM_HDF5_LIB=
+UCVM_PROJ_INC=
+UCVM_PROJ_LIB=
 else
 AM_CONDITIONAL(UCVM, true)
 UCVM_CFLAGS="-I$UCVM_INSTALL_PATH/include"
-UCVM_LDFLAGS="-L$UCVM_INSTALL_PATH/lib -lucvm -dynamic -L/Users/mei/SCEC/TARGET_UCVM/ucvm_install/lib/proj/lib -lproj -lpthread -L/Users/mei/SCEC/TARGET_UCVM/ucvm_install/lib/hdf5/lib -lhdf5 -lm -ldl"
+UCVM_LDFLAGS="-L$UCVM_INSTALL_PATH/lib -lucvm -dynamic -L$UCVM_INSTALL_PATH/lib/proj/lib -lproj -lpthread -L$UCVM_INSTALL_PATH/lib/hdf5/lib -lhdf5 -lm -ldl"
+UCVM_HDF5_INC=$UCVM_INSTALL_PATH/lib/hdf5/include
+UCVM_HDF5_LIB=$UCVM_INSTALL_PATH/lib/hdf5/lib
+UCVM_PROJ_INC=$UCVM_INSTALL_PATH/lib/proj/include
+UCVM_PROJ_LIB=$UCVM_INSTALL_PATH/lib/proj/lib
+AC_SUBST(UCVM_PROJ_INC)
+AC_SUBST(UCVM_PROJ_LIB)
+AC_SUBST(UCVM_HDF5_INC)
+AC_SUBST(UCVM_HDF5_LIB)
 fi
 
+## dependencies
+## 
+AC_ARG_ENABLE([geomodelgrids],[install_geomodelgrids=yes])
+AM_CONDITIONAL([INSTALL_GEOMODELGRIDS], true)
+AC_ARG_WITH([geomodelgrids-incdir],
+  [AS_HELP_STRING([--with-geomodelgrids-incdir], [directory containing geomodelgrids header files])],
+  [with_geomodelgrids_incdir="$withval"],
+  [with_geomodelgrids_incdir="$prefix/include"])
+AC_SUBST(with_geomodelgrids_incdir)
+AC_ARG_WITH([geomodelgrids-libdir],
+  [AS_HELP_STRING([--with-geomodelgrids-libdir], [directory containing geomodelgrids library])],
+  [with_geomodelgrids_libdir="$withval"],
+  [with_geomodelgrids_libdir="$prefix/lib"])
 
-dnl GEOMODELGRIDS (required)
-if test "$install_geomodelgrids" = yes ; then
-  GEOMODELGRIDS_INCLUDES=""
-  GEOMODELGRIDS_LDFLAGS="-lgeomodelgrids"
-else
-  if test "$with_geomodelgrids_incdir" != no ; then
-    GEOMODELGRIDS_INCLUDES="-I$with_geomodelgrids_incdir"
-  fi
-  if test "$with_geomodelgrids_libdir" != no ; then
-    GEOMODELGRIDS_LDFLAGS="-L$with_geomodelgrids_libdir -lgeomodelgrids"
-  fi
-  SCEC_GEOMODELGRIDS_HEADER
-  SCEC_GEOMODELGRIDS_LIB
-fi
+GEOMODELGRIDS_INCLUDES="-I$with_geomodelgrids_incdir"
+GEOMODELGRIDS_LDFLAGS="-L$with_geomodelgrids_libdir -lgeomodelgrids"
 AC_SUBST(GEOMODELGRIDS_INCLUDES)
 AC_SUBST(GEOMODELGRIDS_LDFLAGS)
 
+# TAR
+AC_PATH_PROG(TAR, tar)
+if test -z "$TAR" ; then
+  AC_MSG_FAILURE([cannot find 'tar' program.])
+  TAR=`echo "Error: tar is not installed." ; false`
+fi
+
+# CURL (used to download model files)
+AC_PATH_PROG(CURL, curl)
+if test -z "$CURL" ; then
+  AC_MSG_FAILURE([cannot find 'curl' program.])
+  CURL=`echo "Error: curl is not installed." ; false`
+fi
 
 # Set final CFLAGS and LDFLAGS
-CFLAGS="$CFLAGS $UCVM_LDFAGS"
-LDFLAGS="$LDFLAGS $UCVM_LDFAGS"
+CFLAGS="$CFLAGS $UCVM_LDFLAGS"
+LDFLAGS="$LDFLAGS $UCVM_LDFLAGS"
 
 AC_CONFIG_FILES([Makefile data/Makefile src/Makefile dependencies/Makefile])
 
