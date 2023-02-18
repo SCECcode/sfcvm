@@ -78,7 +78,7 @@ fi
 CFLAGS="$CFLAGS $UCVM_LDFLAGS"
 LDFLAGS="$LDFLAGS $UCVM_LDFLAGS"
 
-AC_CONFIG_FILES([Makefile data/Makefile src/Makefile dependencies/Makefile])
+AC_CONFIG_FILES([Makefile data/Makefile src/Makefile dependencies/Makefile test/Makefile])
 
 AC_OUTPUT
 
