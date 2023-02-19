@@ -3,11 +3,22 @@
 
 AC_INIT([SFCVM],[1.0],[software@scec.org])
 AM_INIT_AUTOMAKE([foreign no-exeext])
-AC_PROG_RANLIB
+AC_CONFIG_MACRO_DIRS([m4])
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_MKDIR_P
+AC_PROG_LIBTOOL
+AC_PROG_INSTALL
+
+AC_PROG_LIBTOOL
+if test "$allow_undefined_flag" = unsupported; then
+    # See issue119.
+    AM_LDFLAGS="-no-undefined $AM_LDFLAGS"
+fi
+AM_CONDITIONAL([NO_UNDEFINED], [test "$allow_undefined_flag" = unsupported])
+AC_SUBST(AM_LDFLAGS)
+
 
 # Checks for libraries.
 
