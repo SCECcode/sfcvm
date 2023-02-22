@@ -10,8 +10,14 @@
  *
  */
 
+#include <assert.h>
+
 #include "ucvm_model_dtypes.h"
 #include "sfcvm.h"
+
+#include "geomodelgrids/serial/cquery.h"
+#include "geomodelgrids/utils/cerrorhandler.h"
+
 
 /************ Constants and Variables ********/
 /** The version of the model. */
@@ -39,8 +45,10 @@ double sfcvm_total_width_m = 0;
 
 
 /* Values and order to be returned in queries.  */
-static const size_t sfcvm_numValues = 3;
+static const size_t sfcvm_numValues = 2;
 static const char* const sfcvm_valueNames[2] = { "two", "one" };
+
+// temp one, need to replace later
 static const size_t sfcvm_numModels = 2;
 
 /* Coordinate reference system of points passed to queries.
@@ -50,10 +58,10 @@ static const size_t sfcvm_numModels = 2;
 * latitude, longitude, elevation in the WGS84 horizontal
 * datum. The elevation is with respect to the WGS84 ellipsoid.
 */
-static const char* const sfcvm_crs = "EPSG:4326";
-static const size_t sfcvm_spaceDim = 3;
+const char* const sfcvm_crs = "EPSG:4326";
+const size_t sfcvm_spaceDim = 3;
 
-const void* sfcvm_query;
+void* sfcvm_query_obj;
 
 /*************************************/
 
@@ -99,13 +107,14 @@ int sfcvm_init(const char *dir, const char *label) {
     }
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
-    sfcvm_query = geomodelgrids_squery_create();
-    assert(sfcvm_query);
+    sfcvm_query_obj = geomodelgrids_squery_create();
+    assert(sfcvm_query_obj);
 
-    int err = geomodelgrids_squery_initialize(sfcvm_query, filenames, numModels, sfcvm_valueNames, sfcvm_numValues, crs);assert(!err);
+    int err = geomodelgrids_squery_initialize(sfcvm_query_obj, sfcvm_configuration->data_filenames, sfcvm_configuration->data_filenames_cnt , sfcvm_valueNames, sfcvm_numValues, sfcvm_crs);
+    assert(!err);
 
 /* Log warnings and errors to "error.log". */
-    void* errorHandler = geomodelgrids_squery_getErrorHandler(sfcvm_query);
+    void* errorHandler = geomodelgrids_squery_getErrorHandler(sfcvm_query_obj);
     assert(errorHandler);
     geomodelgrids_cerrorhandler_setLogFilename(errorHandler, "sfcvm_error.log");
 
@@ -163,21 +172,24 @@ from ucvm_query, the depth is already proprocessed with (ucvm_surface - elevatio
  */
 int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) {
 
-    double values[numValues];
+    double values[sfcvm_numValues];
     for(int i=0; i<numpoints; i++) {
 
         double latitude=points[i].latitude;
         double longitude=points[i].longitude;
-        double depth=points[i].depth; // UCVM depth 
+        double depth=points[i].depth; // UCVM depth = ucvm_surf - elevation 
         double elevation;
 
         // need to calculate elevation before calling undelying model
 
-        const double surfaceElev = geomodelgrids_squery_queryTopElevation(sfcvm_query, latitude, longitude);
-        if(surfaceElev != noData) {
+        const double surfaceElev = geomodelgrids_squery_queryTopElevation(sfcvm_query_obj, latitude, longitude);
+        if(surfaceElev != NO_DATA) {
             elevation = surfaceElev - depth;
-            } else {  // or use ucvm surface
-                elevation = data[i].surf - depth;
+            } else { 
+               // or use ucvm surface ???
+               // elevation = points[i].surf - depth;
+	       sfcvm_print_error("BAD.. no surface data here.");
+	       return UCVM_CODE_ERROR;
         }
             
 
@@ -186,7 +198,7 @@ fprintf(stderr,"\n **** get incoming DATA ..lon(%lf) (lat(%lf) depth(%lf) - elev
                   longitude, latitude, depth, elevation);
 }
 
-        const int err = geomodelgrids_squery_query(sfcvm_query, values, latitude, longitude, elevation);
+        const int err = geomodelgrids_squery_query(sfcvm_query_obj, values, latitude, longitude, elevation);
 
         if(err) {
             data[i].vp=-1;
@@ -202,6 +214,15 @@ fprintf(stderr,"\n **** get incoming DATA ..lon(%lf) (lat(%lf) depth(%lf) - elev
   return UCVM_CODE_SUCCESS;
 }
 
+void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
+
+    for(int i=0; i< config->data_filenames_cnt; i++) {
+       free(config->data_filelabels[i]);
+       free(config->data_filenames[i]);
+    }
+    free(config);
+}
+
 /**
  * Called when the model is being discarded. Free all variables.
  *
@@ -215,8 +236,8 @@ int sfcvm_finalize() {
     free(sfcvm_config_string);
 
 /* Destroy query object. */
-    geomodelgrids_squery_destroy(&sfcvm_query);
-    assert(!sfcvm_query);
+    geomodelgrids_squery_destroy(&sfcvm_query_obj);
+    assert(!sfcvm_query_obj);
 
     return UCVM_CODE_SUCCESS;
 }
@@ -281,22 +302,22 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 config->utm_zone = atoi(value);
             } else if (strcmp(key, "model_dir") == 0) {
                 sprintf(config->model_dir, "%s", value);
-            } else if (strcmp(key, "data_filepath") == 0) {
+            } else if (strcmp(key, "data_path") == 0) {
                 size_t n=strlen(value)+1;
-                config->data_filepath=(char *)(n, sizeof(char));
-                strcpy(config->data_filepath, value);
+                config->data_path=(char *)(n, sizeof(char));
+                strcpy(config->data_path, value);
             } else if (strcmp(key, "data_filenames") == 0) {
                 config->data_filenames_cnt=sfcvm_numModels;
 
-                data_filelables[0]=(char *)calloc(1, strlen("topo")+1);
-                strcpy(data_filelables[0],"topo");
-                data_filelables[1]=(char *)calloc(1, strlen("flat")+1);
-                strcpy(data_filelables[1],"flat");
+                config->data_filelabels[0]=(char *)calloc(1, strlen("topo")+1);
+                strcpy(config->data_filelabels[0],"topo");
+                config->data_filelabels[1]=(char *)calloc(1, strlen("flat")+1);
+                strcpy(config->data_filelabels[1],"flat");
 
-                data_filenames[0]=(char *)calloc(1, strlen("one-block-topo.h5")+1);
-                strcpy(data_filenames[0],"one-block-topo.h5");
-                data_filenames[1]=(char *)calloc(1, strlen("three-blocks-flat.h5")+1);
-                strcpy(data_filenames[1],"three-blocks-flat.h5");
+                config->data_filenames[0]=(char *)calloc(1, strlen("one-block-topo.h5")+1);
+                strcpy(config->data_filenames[0],"one-block-topo.h5");
+                config->data_filenames[1]=(char *)calloc(1, strlen("three-blocks-flat.h5")+1);
+                strcpy(config->data_filenames[1],"three-blocks-flat.h5");
 
 /***********
 //[ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" }, { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" } ]
@@ -326,30 +347,20 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                     ptr++;
                     printf("%lu\n", value);
                 }
-        }
 *************/
-    }
+            }
+       }
 
+    }
     // Have we set up all configuration parameters?
     if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
 	    sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");
-ooooool
-
 	    return UCVM_CODE_ERROR;
     }
 
     fclose(fp);
 
     return UCVM_CODE_SUCCESS;
-}
-
-void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
-
-    for(int i=0; i< config.data_filenames_cnt; i++) {
-       free(data_filelabels[i]);
-       free(data_filenames[i]);
-    }
-    free(config);
 }
 
 /*

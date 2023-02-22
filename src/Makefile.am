@@ -1,8 +1,8 @@
 # Autoconf/automake file
 
 # General compiler/linker flags
-AM_CFLAGS = ${CFLAGS}
-AM_LDFLAGS = ${LDFLAGS}
+AM_CFLAGS = ${CFLAGS} -I$(prefix)/include
+AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib -lgeomodelgrids
 
 TARGETS = libsfcvm.a libsfcvm.so
 
@@ -23,10 +23,10 @@ libsfcvm.so: sfcvm.o
 	$(CC) -shared $(AM_CFLAGS) -o libsfcvm.so $^ $(AM_LDFLAGS)
 
 sfcvm.o: sfcvm.c
-	$(CC) -fPIC -DDYNAMIC_LIBRARY -o $@ -c $^ $(AM_CFLAGS)
+	$(CC) -fPIC -DDYNAMIC_LIBRARY $(AM_CFLAGS) -o $@ -c $^ 
 	
 sfcvm_static.o: sfcvm.c
-	$(CC) -o $@ -c $^ $(AM_CFLAGS)
+	$(CC) $(AM_CFLAGS) -o $@ -c $^ 
 	
 clean:
 	rm -rf $(TARGETS)
