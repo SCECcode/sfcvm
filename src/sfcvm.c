@@ -36,6 +36,25 @@ double sfcvm_total_height_m = 0;
 
 /** The width of this model's region, in meters. */
 double sfcvm_total_width_m = 0;
+
+
+/* Values and order to be returned in queries.  */
+static const size_t sfcvm_numValues = 3;
+static const char* const sfcvm_valueNames[2] = { "two", "one" };
+static const size_t sfcvm_numModels = 2;
+
+/* Coordinate reference system of points passed to queries.
+*
+* The string can be in the form of EPSG:XXXX, WKT, or Proj
+* parameters. In this case, we will specify the coordinates in
+* latitude, longitude, elevation in the WGS84 horizontal
+* datum. The elevation is with respect to the WGS84 ellipsoid.
+*/
+static const char* const sfcvm_crs = "EPSG:4326";
+static const size_t sfcvm_spaceDim = 3;
+
+const void* sfcvm_query;
+
 /*************************************/
 
 int sfcvm_ucvm_debug=0;
@@ -52,40 +71,48 @@ int sfcvm_zmode=0; // ZMODE_DEPTH or ZMODE_ELEVATION
  * @return Success or failure, if initialization was successful.
  */
 int sfcvm_init(const char *dir, const char *label) {
-	char configbuf[512];
+    char configbuf[512];
 
-	// Initialize variables.
-	sfcvm_configuration = calloc(1, sizeof(sfcvm_configuration_t));
-	sfcvm_velocity_model = calloc(1, sizeof(sfcvm_model_t));
-	sfcvm_config_string = calloc(SFCVM_CONFIG_MAX, sizeof(char));
-        sfcvm_config_string[0]='\0';
+    // Initialize variables.
+    sfcvm_configuration = (sfcvm_configuration_t *)calloc(1, sizeof(sfcvm_configuration_t));
+    sfcvm_velocity_model = (sfcvm_model_t *)calloc(1, sizeof(sfcvm_model_t));
+    sfcvm_config_string = (char *)calloc(SFCVM_CONFIG_MAX, sizeof(char));
 
-	// Configuration file location when built with UCVM
-	sprintf(configbuf, "%s/model/%s/data/config", dir, label);
+    // Configuration file location when built with UCVM
+    sprintf(configbuf, "%s/model/%s/data/config", dir, label);
 
-	// Read the configuration file.
-	if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_CODE_SUCCESS) {
+    // Read the configuration file.
+    if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_CODE_SUCCESS) {
 
            // Try another, when is running in standalone mode..
-	   sprintf(configbuf, "%s/data/config", dir);
-	   if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_CODE_SUCCESS) {
-               sfcvm_print_error("No configuration file was found to read from.");
-               return UCVM_CODE_ERROR;
-               } else {
-	       // Set up the data directory.
-	       sprintf(sfcvm_data_directory, "%s/data/%s", dir, sfcvm_configuration->model_dir);
-           }
+       sprintf(configbuf, "%s/data/config", dir);
+       if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_CODE_SUCCESS) {
+           sfcvm_print_error("No configuration file was found to read from.");
+           return UCVM_CODE_ERROR;
            } else {
-	   // Set up the data directory.
-	   sprintf(sfcvm_data_directory, "%s/model/%s/data/%s", dir, label, sfcvm_configuration->model_dir);
-        }
+           // Set up the data directory.
+               sprintf(sfcvm_data_directory, "%s/data/%s", dir, sfcvm_configuration->model_dir);
+       }
+       } else {
+           // Set up the data directory.
+           sprintf(sfcvm_data_directory, "%s/model/%s/data/%s", dir, label, sfcvm_configuration->model_dir);
+    }
 
-        /* setup config_string  interp=0 or interp= 1*/
-        sprintf(sfcvm_config_string,"config = %s, interp = %d\n",configbuf, sfcvm_configuration->interp);
-	// Let everyone know that we are initialized and ready for business.
-	sfcvm_is_initialized = 1;
+/* Create and initialize serial query object using the parameters  stored in local variables.  */
+    sfcvm_query = geomodelgrids_squery_create();
+    assert(sfcvm_query);
 
-	return UCVM_CODE_SUCCESS;
+    int err = geomodelgrids_squery_initialize(sfcvm_query, filenames, numModels, sfcvm_valueNames, sfcvm_numValues, crs);assert(!err);
+
+/* Log warnings and errors to "error.log". */
+    void* errorHandler = geomodelgrids_squery_getErrorHandler(sfcvm_query);
+    assert(errorHandler);
+    geomodelgrids_cerrorhandler_setLogFilename(errorHandler, "sfcvm_error.log");
+
+    // Let everyone know that we are initialized and ready for business.
+    sfcvm_is_initialized = 1;
+
+    return UCVM_CODE_SUCCESS;
 }
 
 /**  
@@ -136,36 +163,41 @@ from ucvm_query, the depth is already proprocessed with (ucvm_surface - elevatio
  */
 int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) {
 
-  // setup >> points -> entry (assume always Q in depth)
-  // retrieve >> entry -> data
+    double values[numValues];
+    for(int i=0; i<numpoints; i++) {
 
-//  if(sfcvm_zmode == ZMODE_ELEV) { fprintf(stderr,"sfcvm_query: ZMODE= elev\n"); }
-//  if(sfcvm_zmode == ZMODE_DEPTH) { fprintf(stderr,"sfcvm_query: ZMODE= dep\n"); }
+        double latitude=points[i].latitude;
+        double longitude=points[i].longitude;
+        double depth=points[i].depth; // UCVM depth 
+        double elevation;
 
-  for(int i=0; i<numpoints; i++) {
+        // need to calculate elevation before calling undelying model
+
+        const double surfaceElev = geomodelgrids_squery_queryTopElevation(sfcvm_query, latitude, longitude);
+        if(surfaceElev != noData) {
+            elevation = surfaceElev - depth;
+            } else {  // or use ucvm surface
+                elevation = data[i].surf - depth;
+        }
+            
 
 if(sfcvm_ucvm_debug) {
-fprintf(stderr,"\n **** get incoming DATA ..(%lf %lf %lf) \n",
-                  points[i].longitude, points[i].latitude, points[i].depth);
+fprintf(stderr,"\n **** get incoming DATA ..lon(%lf) (lat(%lf) depth(%lf) - elevation(%lf) \n",
+                  longitude, latitude, depth, elevation);
 }
-    /*
-       By the time here, Conditions:
 
-       Following condition must have met,
-         1) Point data has not been filled in by previous model
-         2) Point falls in crust or interpolation zone
-         3) Point falls within the configured model region
-     */
+        const int err = geomodelgrids_squery_query(sfcvm_query, values, latitude, longitude, elevation);
 
-      /* Force depth mode if directed and point is above surface */
-      if ((sfcvm_force_depth) && (sfcvm_zmode == ZMODE_ELEV) &&
-          (points[i].depth < 0.0)) {
-      }
-
-      data[i].vp=-1;
-      data[i].vs=-1;
-      data[i].rho=-1;
-
+        if(err) {
+            data[i].vp=-1;
+            data[i].vs=-1;
+            data[i].rho=-1;
+            } else {
+                data[i].vp=values[0];
+                data[i].vs=values[1];
+// XX not sure where is this..
+                data[i].rho=-1;
+        }
   }
   return UCVM_CODE_SUCCESS;
 }
@@ -176,13 +208,17 @@ fprintf(stderr,"\n **** get incoming DATA ..(%lf %lf %lf) \n",
  * @return UCVM_CODE_SUCCESS
  */
 int sfcvm_finalize() {
-	sfcvm_is_initialized = 0;
+    sfcvm_is_initialized = 0;
 
-	free(sfcvm_configuration);
-	free(sfcvm_velocity_model);
-	free(sfcvm_config_string);
+    _free_sfcvm_configuration(sfcvm_configuration);
+    free(sfcvm_velocity_model);
+    free(sfcvm_config_string);
 
-	return UCVM_CODE_SUCCESS;
+/* Destroy query object. */
+    geomodelgrids_squery_destroy(&sfcvm_query);
+    assert(!sfcvm_query);
+
+    return UCVM_CODE_SUCCESS;
 }
 
 /**
@@ -225,52 +261,105 @@ int sfcvm_config(char **config, int *sz)
  * @return Success or failure, depending on if file was read successfully.
  */
 int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
-	FILE *fp = fopen(file, "r");
-	char key[40];
-	char value[80];
-	char line_holder[128];
+    FILE *fp = fopen(file, "r");
+    char key[40];
+    char value[80];
+    char line_holder[1280];
 
-	// If our file pointer is null, an error has occurred. Return fail.
-	if (fp == NULL) {
-		return UCVM_CODE_ERROR;
-	}
+    // If our file pointer is null, an error has occurred. Return fail.
+    if (fp == NULL) {
+        return UCVM_CODE_ERROR;
+    }
 
-        config->interp=0;
+    // Read the lines in the configuration file.
+    while (fgets(line_holder, sizeof(line_holder), fp) != NULL) {
+        if (line_holder[0] != '#' && line_holder[0] != ' ' && line_holder[0] != '\n') {
+            sscanf(line_holder, "%s = %s", key, value);
 
-	// Read the lines in the configuration file.
-	while (fgets(line_holder, sizeof(line_holder), fp) != NULL) {
-		if (line_holder[0] != '#' && line_holder[0] != ' ' && line_holder[0] != '\n') {
-			sscanf(line_holder, "%s = %s", key, value);
+            // Which variable are we editing?
+            if (strcmp(key, "utm_zone") == 0) {
+                config->utm_zone = atoi(value);
+            } else if (strcmp(key, "model_dir") == 0) {
+                sprintf(config->model_dir, "%s", value);
+            } else if (strcmp(key, "data_filepath") == 0) {
+                size_t n=strlen(value)+1;
+                config->data_filepath=(char *)(n, sizeof(char));
+                strcpy(config->data_filepath, value);
+            } else if (strcmp(key, "data_filenames") == 0) {
+                config->data_filenames_cnt=sfcvm_numModels;
 
-			// Which variable are we editing?
-			if (strcmp(key, "utm_zone") == 0)
-  				config->utm_zone = atoi(value);
-			if (strcmp(key, "model_dir") == 0)
-				sprintf(config->model_dir, "%s", value);
-			if (strcmp(key, "interp") == 0)
-  				config->interp = atoi(value);
-		}
-	}
+                data_filelables[0]=(char *)calloc(1, strlen("topo")+1);
+                strcpy(data_filelables[0],"topo");
+                data_filelables[1]=(char *)calloc(1, strlen("flat")+1);
+                strcpy(data_filelables[1],"flat");
 
-	// Have we set up all configuration parameters?
-	if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
-		sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");
-		return UCVM_CODE_ERROR;
-	}
+                data_filenames[0]=(char *)calloc(1, strlen("one-block-topo.h5")+1);
+                strcpy(data_filenames[0],"one-block-topo.h5");
+                data_filenames[1]=(char *)calloc(1, strlen("three-blocks-flat.h5")+1);
+                strcpy(data_filenames[1],"three-blocks-flat.h5");
 
-	fclose(fp);
+/***********
+//[ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" }, { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" } ]
+                char *ptr = value;
+                char *value;
+                
+                while (ptr) {
+                    int rc=sscanf(ptr," %s : %s 
+                    ptr = strstr(ptr, "\"LABEL\"");
+                    if (ptr == NULL) {
+                        break;
+                    }
+                    ptr += (strlen("LABEL")+2)
+                    ptr = strchr(ptr, ':');
+                    if (ptr == NULL) {
+                        break;
+                    }
+                    ptr++;
+                    // parse out a string
+                    char TMP[100];
+                    sscanf(ptr,"\"%s\",TMP);
+// pick up values
+                    value = strtol(ptr, &ptr, 10);
+                    if (*ptr != '}') {
+                        break;
+                    }
+                    ptr++;
+                    printf("%lu\n", value);
+                }
+        }
+*************/
+    }
 
-	return UCVM_CODE_SUCCESS;
+    // Have we set up all configuration parameters?
+    if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
+	    sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");
+ooooool
+
+	    return UCVM_CODE_ERROR;
+    }
+
+    fclose(fp);
+
+    return UCVM_CODE_SUCCESS;
+}
+
+void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
+
+    for(int i=0; i< config.data_filenames_cnt; i++) {
+       free(data_filelabels[i]);
+       free(data_filenames[i]);
+    }
+    free(config);
 }
 
 /*
  * @param err The error string to print out to stderr.
  */
 void sfcvm_print_error(char *err) {
-	fprintf(stderr, "An error has occurred while executing SFCVM. The error was:\n\n");
-	fprintf(stderr, "%s", err);
-	fprintf(stderr, "\n\nPlease contact software@scec.org and describe both the error and a bit\n");
-	fprintf(stderr, "about the computer you are running SFCVM on (Linux, Mac, etc.).\n");
+    fprintf(stderr, "An error has occurred while executing SFCVM. The error was:\n\n");
+    fprintf(stderr, "%s", err);
+    fprintf(stderr, "\n\nPlease contact software@scec.org and describe both the error and a bit\n");
+    fprintf(stderr, "about the computer you are running SFCVM on (Linux, Mac, etc.).\n");
 }
 
 // The following functions are for dynamic library mode. If we are compiling
@@ -284,7 +373,7 @@ void sfcvm_print_error(char *err) {
  * @return Success or failure.
  */
 int model_init(const char *dir, const char *label) {
-	return sfcvm_init(dir, label);
+    return sfcvm_init(dir, label);
 }
 
 /**
@@ -296,7 +385,7 @@ int model_init(const char *dir, const char *label) {
  * @return Success or fail.
  */
 int model_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) {
-	return sfcvm_query(points, data, numpoints);
+    return sfcvm_query(points, data, numpoints);
 }
 
 /**
@@ -308,7 +397,7 @@ int model_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
  * @return Success or fail.
  */
 int model_setparam(int id, int param, int val) {
-	return sfcvm_setparam(id, param, val);
+    return sfcvm_setparam(id, param, val);
 }
 
 /**
@@ -317,7 +406,7 @@ int model_setparam(int id, int param, int val) {
  * @return Success
  */
 int model_finalize() {
-	return sfcvm_finalize();
+    return sfcvm_finalize();
 }
 
 /**
@@ -328,7 +417,7 @@ int model_finalize() {
  * @return Zero
  */
 int model_version(char *ver, int len) {
-	return sfcvm_version(ver, len);
+    return sfcvm_version(ver, len);
 }
 
 /**

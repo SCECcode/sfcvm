@@ -28,7 +28,7 @@
 typedef enum { ZMODE_ELEV = 0, 
                ZMODE_DEPTH } zmode_t;
 
-#define NO_DATA -99999.0
+#define NO_DATA -1.0e+20
 #define SFCVM_CONFIG_MAX 1000
 
 // Structures
@@ -62,8 +62,12 @@ typedef struct sfcvm_configuration_t {
 	int utm_zone;
 	/** The model directory */
 	char model_dir[1000];
-        /** interp */
-	int interp;
+
+        /* raw datafile */
+        char *data_path;
+        char *data_filelabels[10];
+        char *data_filenames[100];
+        int data_filenames_cnt;
 
 } sfcvm_configuration_t;
 
@@ -81,7 +85,6 @@ extern const char *sfcvm_version_string;
 
 /** The config of the model. */
 extern char *sfcvm_config_string;
-extern int sfcvm_config_sz;
 
 // Variables
 /** Set to 1 when the model is ready for query. */

@@ -21,8 +21,8 @@ main(int argc,
     /* Models to query. */
     static const size_t numModels = 2;
     static const char* const filenames[2] = {
-        "../../tests/data/one-block-topo.h5",
-        "../../tests/data/three-blocks-flat.h5",
+        "../dependencies/geomodelgrids/tests/data/one-block-topo.h5",
+        "../dependencies/geomodelgrids/tests/data/three-blocks-flat.h5",
     };
 
     /* Values and order to be returned in queries.
