@@ -6,7 +6,6 @@ model_dir = sfcvm
 model_data_path  = https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/models
 model_dependency = { "geomodelgrids.tar.gz": "https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/v23_4/lib" }
 
-data_filepath = "../../tests"
 # max number, 10
 data_filenames = [ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" }, { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" } ]
 

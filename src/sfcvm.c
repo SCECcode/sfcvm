@@ -47,6 +47,8 @@ double sfcvm_total_width_m = 0;
 /* Values and order to be returned in queries.  */
 static const size_t sfcvm_numValues = 2;
 static const char* const sfcvm_valueNames[2] = { "two", "one" };
+char* sfcvm_filenames[2];
+int sfcvm_filenames_cnt;
 
 // temp one, need to replace later
 static const size_t sfcvm_numModels = 2;
@@ -106,11 +108,26 @@ int sfcvm_init(const char *dir, const char *label) {
            sprintf(sfcvm_data_directory, "%s/model/%s/data/%s", dir, label, sfcvm_configuration->model_dir);
     }
 
+
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
     sfcvm_query_obj = geomodelgrids_squery_create();
     assert(sfcvm_query_obj);
 
-    int err = geomodelgrids_squery_initialize(sfcvm_query_obj, sfcvm_configuration->data_filenames, sfcvm_configuration->data_filenames_cnt , sfcvm_valueNames, sfcvm_numValues, sfcvm_crs);
+    // dir/data/model_dir/filename
+    sfcvm_filenames_cnt =sfcvm_configuration->data_filenames_cnt;
+    for(int i=0; i < sfcvm_filenames_cnt; i++) {
+       sfcvm_filenames[i]= (char *)calloc(1,
+         strlen(dir)+(strlen(sfcvm_configuration->model_dir)*2)+strlen(sfcvm_configuration->data_filenames[i]) +15);
+       sprintf(sfcvm_filenames[i],"%s/model/%s/data/%s/%s",
+           dir,
+           sfcvm_configuration->model_dir,
+           sfcvm_configuration->model_dir,
+           sfcvm_configuration->data_filenames[i]);
+//fprintf(stderr,"sfcvm filename %s\n",sfcvm_filenames[i]);
+    }
+
+    int err = geomodelgrids_squery_initialize(sfcvm_query_obj, sfcvm_filenames,
+                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_crs);
     assert(!err);
 
 /* Log warnings and errors to "error.log". */
@@ -235,6 +252,10 @@ int sfcvm_finalize() {
     free(sfcvm_velocity_model);
     free(sfcvm_config_string);
 
+    for(int i=0; i<sfcvm_filenames_cnt; i++) {
+        free(sfcvm_filenames[i]);
+    }
+
 /* Destroy query object. */
     geomodelgrids_squery_destroy(&sfcvm_query_obj);
     assert(!sfcvm_query_obj);
@@ -302,10 +323,6 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 config->utm_zone = atoi(value);
             } else if (strcmp(key, "model_dir") == 0) {
                 sprintf(config->model_dir, "%s", value);
-            } else if (strcmp(key, "data_path") == 0) {
-                size_t n=strlen(value)+1;
-                config->data_path=(char *)(n, sizeof(char));
-                strcpy(config->data_path, value);
             } else if (strcmp(key, "data_filenames") == 0) {
                 config->data_filenames_cnt=sfcvm_numModels;
 
@@ -314,11 +331,10 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 config->data_filelabels[1]=(char *)calloc(1, strlen("flat")+1);
                 strcpy(config->data_filelabels[1],"flat");
 
-                config->data_filenames[0]=(char *)calloc(1, strlen("one-block-topo.h5")+1);
+                config->data_filenames[0]=(char *)calloc(1,strlen("one-block-topo.h5")+1);
                 strcpy(config->data_filenames[0],"one-block-topo.h5");
                 config->data_filenames[1]=(char *)calloc(1, strlen("three-blocks-flat.h5")+1);
                 strcpy(config->data_filenames[1],"three-blocks-flat.h5");
-
 /***********
 //[ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" }, { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" } ]
                 char *ptr = value;

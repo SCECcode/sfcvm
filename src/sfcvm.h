@@ -66,7 +66,6 @@ typedef struct sfcvm_configuration_t {
 	char model_dir[1000];
 
         /* raw datafile */
-        char *data_path;
         char *data_filelabels[10];
         char *data_filenames[100];
         int data_filenames_cnt;
