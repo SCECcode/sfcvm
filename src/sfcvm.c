@@ -67,7 +67,7 @@ void* sfcvm_query_obj;
 
 /*************************************/
 
-int sfcvm_ucvm_debug=0;
+int sfcvm_ucvm_debug=1;
 int sfcvm_force_depth=0;
 int sfcvm_zmode=0; // ZMODE_DEPTH or ZMODE_ELEVATION
 
@@ -214,6 +214,8 @@ if(sfcvm_ucvm_debug) {
 fprintf(stderr,"\n **** get incoming DATA ..lon(%lf) (lat(%lf) depth(%lf) - elevation(%lf) \n",
                   longitude, latitude, depth, elevation);
 }
+
+/*** XXX ??? need to do elevation squashing ???  ****/
 
         const int err = geomodelgrids_squery_query(sfcvm_query_obj, values, latitude, longitude, elevation);
 
