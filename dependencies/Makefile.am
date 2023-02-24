@@ -36,4 +36,4 @@ installed_geomodelgrids:
 	$(MAKE) $(AM_MAKEFLAGS) geomodelgrids
 
 clean: 
-	rm -rf geomodelgrids installed_geomodelgrids geomodelgrids-build
+	rm -rf installed_geomodelgrids geomodelgrids-build
