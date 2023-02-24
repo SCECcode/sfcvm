@@ -11,7 +11,7 @@ if INSTALL_GEOMODELGRIDS
 GEOMODELGRIDS_TARBALL=${srcdir}/geomodelgrids.tar.gz
 GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	if [ ! -d "$(GEOMODELGRIDS_SRC)" ]; then \ 
-		if [ ! -f "$(GEOMODELGRIDS_TARBALL)" ]; then $(CURL) -L -O $(GEOMODELGRIDS_URL)/$(GEOMODELGRIDS_TARBALL); fi \
+		if [ ! -f "$(GEOMODELGRIDS_TARBALL)" ]; then $(CURL) -L -O $(GEOMODELGRIDS_URL); fi \
 		$(TAR) -xf $(GEOMODELGRIDS_TARBALL) \
 	; fi
 	$(MKDIR_P) geomodelgrids-build
