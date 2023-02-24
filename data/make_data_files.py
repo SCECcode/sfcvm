@@ -41,7 +41,6 @@ def main():
     # Set our variable defaults.
     path = ""
     bpath = ""
-    deplist = ""
 
     try:
         fp = open('./config','r')
@@ -68,9 +67,6 @@ def main():
             mdir = "./"+val
             bdir = "./"+"sfcvm"
             continue
-        if (variable == 'model_dependency') :
-            deplist = json.loads(val) 
-            continue
         continue
     if path == "" :
         print("ERROR: failed to find variables from config file")
@@ -92,19 +88,6 @@ def main():
         print(url, fname)
         try: 
           download_urlfile(url,fname)
-        except:
-          sys.exit(1)
-
-## model's dependencies
-    klist= deplist.keys()
-
-    for fname in klist :
-        deppath=deplist[fname]
-        newfname="../dependencies/"+fname
-        url = deppath + "/" + fname
-        print(url, newfname)
-        try: 
-          download_urlfile(url,newfname)
         except:
           sys.exit(1)
 

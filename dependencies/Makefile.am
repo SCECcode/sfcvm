@@ -1,5 +1,5 @@
 
-GEOMODELGRIDS_URL=https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/v23_4/libs/geomodelgrids.tar.gz
+GEOMODELGRIDS_URL=https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/v23_4/lib/geomodelgrids.tar.gz
 
 all: installed_geomodelgrids
 
@@ -9,8 +9,11 @@ all: installed_geomodelgrids
 geomodelgrids:
 if INSTALL_GEOMODELGRIDS
 GEOMODELGRIDS_TARBALL=${srcdir}/geomodelgrids.tar.gz
-	if [ ! -f "$(GEOMODELGRIDS_TARBALL)" ]; then $(CURL) -L -O $(GEOMODELGRIDS_URL)/$(GEOMODELGRIDS_TARBALL); fi
-	$(TAR) -xf $(GEOMODELGRIDS_TARBALL)
+GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
+	if [ ! -d "$(GEOMODELGRIDS_SRC)" ]; then \ 
+		if [ ! -f "$(GEOMODELGRIDS_TARBALL)" ]; then $(CURL) -L -O $(GEOMODELGRIDS_URL)/$(GEOMODELGRIDS_TARBALL); fi \
+		$(TAR) -xf $(GEOMODELGRIDS_TARBALL) \
+	; fi
 	$(MKDIR_P) geomodelgrids-build
 	cd ${abs_builddir}/geomodelgrids && \
 		aclocal && \
