@@ -6,13 +6,15 @@ all: installed_geomodelgrids
 # ------------------------------------------------------------------------------
 # GEOMODELGRIDS
 # ------------------------------------------------------------------------------
-geomodelgrids:
+geomodelgrids-build:
 if INSTALL_GEOMODELGRIDS
 GEOMODELGRIDS_TARBALL=${srcdir}/geomodelgrids.tar.gz
 GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	if [ ! -d "$(GEOMODELGRIDS_SRC)" ]; then \ 
-		if [ ! -f "$(GEOMODELGRIDS_TARBALL)" ]; then $(CURL) -L -O $(GEOMODELGRIDS_URL); fi \
-		$(TAR) -xf $(GEOMODELGRIDS_TARBALL) \
+		if [ ! -f "$(GEOMODELGRIDS_TARBALL)" ]; then \
+			$(CURL) -L -O $(GEOMODELGRIDS_URL); \
+			$(TAR) -xf $(GEOMODELGRIDS_TARBALL); \
+ 		fi \
 	; fi
 	$(MKDIR_P) geomodelgrids-build
 	cd ${abs_builddir}/geomodelgrids && \
@@ -33,7 +35,7 @@ else
 endif
 
 installed_geomodelgrids:
-	$(MAKE) $(AM_MAKEFLAGS) geomodelgrids
+	$(MAKE) $(AM_MAKEFLAGS) geomodelgrids-build
 
 clean: 
 	rm -rf installed_geomodelgrids geomodelgrids-build
