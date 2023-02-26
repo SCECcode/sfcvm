@@ -86,8 +86,8 @@ if test -z "$CURL" ; then
 fi
 
 # Set final CFLAGS and LDFLAGS
-CFLAGS="$CFLAGS $UCVM_LDFLAGS"
-LDFLAGS="$LDFLAGS $UCVM_LDFLAGS"
+CFLAGS="$CFLAGS"
+LDFLAGS="$LDFLAGS"
 
 AC_CONFIG_FILES([Makefile data/Makefile src/Makefile dependencies/Makefile test/Makefile])
 
