@@ -200,6 +200,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         // need to calculate elevation before calling undelying model
 
         const double surfaceElev = geomodelgrids_squery_queryTopElevation(sfcvm_query_obj, latitude, longitude);
+
         if(surfaceElev != NO_DATA) {
             elevation = surfaceElev - depth;
             } else { 
@@ -211,14 +212,16 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
             
 
 if(sfcvm_ucvm_debug) {
-fprintf(stderr,"\n **** get incoming DATA ..lon(%lf) (lat(%lf) depth(%lf) - elevation(%lf) \n",
-                  longitude, latitude, depth, elevation);
+fprintf(stderr,"\n **** Calling squery sfcvm surface (%lf) supplied depth(%lf) \n", surfaceElev, depth);
+fprintf(stderr," **** Calling squery with..lon(%lf) lat(%lf) elevation(%lf) \n\n",
+                  longitude, latitude, elevation);
 }
 
 /*** XXX ??? need to do elevation squashing ???  ****/
 
-        const int err = geomodelgrids_squery_query(sfcvm_query_obj, values, latitude, longitude, elevation);
+        int err = geomodelgrids_squery_query(sfcvm_query_obj, values, latitude, longitude, elevation);
 
+fprintf(stderr,"calling query error code %d\n", err);
         if(err) {
             data[i].vp=-1;
             data[i].vs=-1;
