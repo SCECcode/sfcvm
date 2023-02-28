@@ -340,8 +340,9 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 strcpy(config->data_filenames[0],"one-block-topo.h5");
                 config->data_filenames[1]=(char *)calloc(1, strlen("three-blocks-flat.h5")+1);
                 strcpy(config->data_filenames[1],"three-blocks-flat.h5");
-/***********
-//[ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" }, { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" } ]
+//[ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" },
+     { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" } ]
+//
                 char *ptr = value;
                 char *value;
                 
@@ -368,7 +369,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                     ptr++;
                     printf("%lu\n", value);
                 }
-*************/
+                return 1;
             }
        }
 
