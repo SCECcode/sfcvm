@@ -1,5 +1,6 @@
 
-TOP_LOC=/Users/mei/scec/geomodelgrids/build/bin/.libs
+#TOP_LOC=/Users/mei/scec/geomodelgrids/build/bin/.libs
+TOP_LOC=/Users/mei/scec/TARGET_UCVM/ucvm/work/model/sfcvm/dependencies/geomodelgrids-build/bin/.libs
 
 rm -rf one-block-flat_latlon.out one-block-fat_utm.out
 rm -rf one-block-flat_latlon.in one-block-fat_utm.in
@@ -40,35 +41,30 @@ ${TOP_LOC}/geomodelgrids_queryelev \
 
 cat one-block-flat_latlon_surf.out
 
-exit
-
 ${TOP_LOC}/geomodelgrids_queryelev \
---models=../dependencies/geomodelgrids/tests/data/one-block-flat.h5 \
---points=./one-block-flat_latlon_elev.in \
---output=./one-block-flat_latlon_elevX.out \
+--models=../dependencies/geomodelgrids/tests/data/one-block-topo.h5 \
+--points=./one-block-flat_latlon.in \
+--output=./one-block-flat_latlon_topo.out \
 --points-coordsys=EPSG:4326 \
 --surface=topography_bathymetry
 
-cat one-block-flat_latlon_elevX.out
-
-exit
+cat one-block-flat_latlon_topo.out
 
 
-cat <<  UTM &> one-block-flat_utm.in
+cat <<  UTME &> one-block-flat_utm_elev.in
 593662.64 4145875.37 0.00
+593662.64 4145875.37 -500.00
 611935.55 4148764.09 -5000.00
 625627.70 4138083.87 -3000.00
-UTM
+UTME
 
-##--models=../dependencies/geomodelgrids/tests/data/one-block-topo.h5 \
-#
-../install/bin/geomodelgrids_query \
---models=../dependencies/geomodelgrids/tests/data/one-block-flat.h5 \
---points=./one-block-flat_utm.in \
---output=./one-block-flat_utm.out \
+${TOP_LOC}/geomodelgrids_query \
+--models=../dependencies/geomodelgrids/tests/data/one-block-topo.h5,../dependencies/geomodelgrids/tests/data/three-blocks-flat.h5 \
+--points=./one-block-flat_utm_elev.in \
+--output=./one-block-flat_utm_elevX.out \
 --values=one,two \
 --points-coordsys=EPSG:26910 
 
 
-cat one-block-flat_utm.out
+cat one-block-flat_utm_elevX.out
 
