@@ -47,11 +47,9 @@ double sfcvm_total_width_m = 0;
 /* Values and order to be returned in queries.  */
 static const size_t sfcvm_numValues = 2;
 static const char* const sfcvm_valueNames[2] = { "two", "one" };
-char* sfcvm_filenames[2];
-int sfcvm_filenames_cnt;
 
-// temp one, need to replace later
-static const size_t sfcvm_numModels = 2;
+char* sfcvm_filenames[10];  // max is 10
+int sfcvm_filenames_cnt;
 
 /* Coordinate reference system of points passed to queries.
 *
@@ -114,17 +112,25 @@ int sfcvm_init(const char *dir, const char *label) {
     assert(sfcvm_query_obj);
 
     // dir/data/model_dir/filename
-    sfcvm_filenames_cnt =sfcvm_configuration->data_filenames_cnt;
-    for(int i=0; i < sfcvm_filenames_cnt; i++) {
+    sfcvm_filenames_cnt =sfcvm_configuration->data_cnt;
+    if(sfcvm_filenames_cnt > 10) {
+        fprintf(stderr,"BADD");
+        exit(1);
+    }
+
+    for(int i=0; i < 2; i++) {
        sfcvm_filenames[i]= (char *)calloc(1,
-         strlen(dir)+(strlen(sfcvm_configuration->model_dir)*2)+strlen(sfcvm_configuration->data_filenames[i]) +15);
+           strlen(dir)+(strlen(sfcvm_configuration->model_dir)*2)+strlen(sfcvm_configuration->data_files[i]) +15);
        sprintf(sfcvm_filenames[i],"%s/model/%s/data/%s/%s",
            dir,
            sfcvm_configuration->model_dir,
            sfcvm_configuration->model_dir,
-           sfcvm_configuration->data_filenames[i]);
-//fprintf(stderr,"sfcvm filename %s\n",sfcvm_filenames[i]);
+           sfcvm_configuration->data_files[i]);
+
+       fprintf(stderr,"using %s\n", sfcvm_filenames[i]);
     }
+
+
 
     int err = geomodelgrids_squery_initialize(sfcvm_query_obj, sfcvm_filenames,
                   sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_crs);
@@ -238,11 +244,18 @@ fprintf(stderr,"calling query error code %d\n", err);
 
 void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
 
-    for(int i=0; i< config->data_filenames_cnt; i++) {
-       free(config->data_filelabels[i]);
-       free(config->data_filenames[i]);
+    for(int i=0; i< config->data_cnt; i++) {
+       free(config->data_labels[i]);
+       free(config->data_files[i]);
     }
     free(config);
+}
+
+void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
+    for(int i=0; i< config->data_cnt; i++) {
+       fprintf(stderr,"%d \n", i);
+       fprintf(stderr,"  %s: %s\n",config->data_labels[i], config->data_files[i]);
+    }
 }
 
 /**
@@ -256,10 +269,6 @@ int sfcvm_finalize() {
     _free_sfcvm_configuration(sfcvm_configuration);
     free(sfcvm_velocity_model);
     free(sfcvm_config_string);
-
-    for(int i=0; i<sfcvm_filenames_cnt; i++) {
-        free(sfcvm_filenames[i]);
-    }
 
 /* Destroy query object. */
     geomodelgrids_squery_destroy(&sfcvm_query_obj);
@@ -297,6 +306,30 @@ int sfcvm_config(char **config, int *sz)
   return UCVM_CODE_ERROR;
 }
 
+// skip double-quote
+int _skip(char *str) {
+    char *p = strchr(str, '"');
+    if (p == NULL) { return 0; }
+    return p-str;
+}
+
+char *_search(char *str, char *label, char** vptr) {
+    char value[1000];
+    str = strstr(str, label);
+    if (str == NULL) { return NULL; }
+    str += (strlen(label)+2);
+    str = strchr(str, '"');
+    if (str == NULL) { return NULL; }
+    // parse out a string
+    sscanf(str,"\"%s",value);
+    int len=strlen(value);
+    str += (len+2);
+    int s=_skip(value);
+    if(s) { value[s] = '\0'; }
+    *vptr=strdup(value);
+    return str;
+}
+
 
 /**
  * Reads the configuration file describing the various properties of SFCVM and populates
@@ -310,8 +343,10 @@ int sfcvm_config(char **config, int *sz)
 int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
     FILE *fp = fopen(file, "r");
     char key[40];
-    char value[80];
-    char line_holder[1280];
+    char value[2000];
+    char line_holder[2000];
+
+fprintf(stderr,"READING configuration..\n");
 
     // If our file pointer is null, an error has occurred. Return fail.
     if (fp == NULL) {
@@ -322,58 +357,37 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
     while (fgets(line_holder, sizeof(line_holder), fp) != NULL) {
         if (line_holder[0] != '#' && line_holder[0] != ' ' && line_holder[0] != '\n') {
             sscanf(line_holder, "%s = %s", key, value);
+fprintf(stderr," >> %s\n", line_holder);
 
             // Which variable are we editing?
             if (strcmp(key, "utm_zone") == 0) {
                 config->utm_zone = atoi(value);
             } else if (strcmp(key, "model_dir") == 0) {
                 sprintf(config->model_dir, "%s", value);
-            } else if (strcmp(key, "data_filenames") == 0) {
-                config->data_filenames_cnt=sfcvm_numModels;
+            } else if (strcmp(key, "data_files") == 0) {
+                int idx=0;
+                char *p = strchr(line_holder, '=');
+                char *ptr=&line_holder[p-line_holder];
 
-                config->data_filelabels[0]=(char *)calloc(1, strlen("topo")+1);
-                strcpy(config->data_filelabels[0],"topo");
-                config->data_filelabels[1]=(char *)calloc(1, strlen("flat")+1);
-                strcpy(config->data_filelabels[1],"flat");
+fprintf(stderr,"process data_files configuration..\n");
+fprintf(stderr,"  %s\n",ptr);
 
-                config->data_filenames[0]=(char *)calloc(1,strlen("one-block-topo.h5")+1);
-                strcpy(config->data_filenames[0],"one-block-topo.h5");
-                config->data_filenames[1]=(char *)calloc(1, strlen("three-blocks-flat.h5")+1);
-                strcpy(config->data_filenames[1],"three-blocks-flat.h5");
-//[ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" },
-     { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" } ]
-//
-                char *ptr = value;
-                char *value;
-                
                 while (ptr) {
-                    int rc=sscanf(ptr," %s : %s 
-                    ptr = strstr(ptr, "\"LABEL\"");
-                    if (ptr == NULL) {
-                        break;
-                    }
-                    ptr += (strlen("LABEL")+2)
-                    ptr = strchr(ptr, ':');
-                    if (ptr == NULL) {
-                        break;
-                    }
+                    // look for the label
+                    ptr=_search(ptr,"LABEL",&config->data_labels[idx]);
+                    if(ptr == NULL) break;
+                    ptr=_search(ptr,"NAME",&config->data_files[idx]);
+                    if(ptr == NULL) break;
+                    idx=idx+1;
+                    if (*ptr == ']') break;
                     ptr++;
-                    // parse out a string
-                    char TMP[100];
-                    sscanf(ptr,"\"%s\",TMP);
-// pick up values
-                    value = strtol(ptr, &ptr, 10);
-                    if (*ptr != '}') {
-                        break;
-                    }
-                    ptr++;
-                    printf("%lu\n", value);
                 }
-                return 1;
+                config->data_cnt=idx;
             }
        }
 
     }
+    _dump_sfcvm_configuration(config);
     // Have we set up all configuration parameters?
     if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
 	    sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");

@@ -6,9 +6,7 @@ model_dir = sfcvm
 model_data_path  = https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/models
 
 # max number, 10
-data_filenames = [ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" },
-                   { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" },
-                   { "LABEL" : "sfcvm", "NAME" : "USGS_SFCVM_v21-1_detailed.h5" } ]
+data_files = [ { "LABEL" : "topo", "NAME" : "one-block-topo.h5" }, { "LABEL" : "flat", "NAME" : "three-blocks-flat.h5" }, { "LABEL" : "sfcvm", "NAME" : "USGS_SFCVM_v21-1_detailed.h5" } ]
 
 ## origin: ??
 ## upper: ??

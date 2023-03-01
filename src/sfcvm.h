@@ -65,10 +65,10 @@ typedef struct sfcvm_configuration_t {
 	/** The model directory */
 	char model_dir[1000];
 
-        /* raw datafile */
-        char *data_filelabels[10];
-        char *data_filenames[100];
-        int data_filenames_cnt;
+        /* raw model datafile */
+        char *data_labels[10];
+        char *data_files[100];
+        int data_cnt;
 
 } sfcvm_configuration_t;
 
