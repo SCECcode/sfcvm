@@ -348,7 +348,7 @@ int suite_sfcvm_exec(const char *xmldir)
   /* Setup test suite */
   strcpy(suite.suite_name, "suite_sfcvm_exec");
 
-  suite.num_tests = 1;
+  suite.num_tests = 2;
   suite.tests = malloc(suite.num_tests * sizeof(test_t));
   if (suite.tests == NULL) {
     fprintf(stderr, "Failed to alloc test structure\n");
@@ -356,12 +356,16 @@ int suite_sfcvm_exec(const char *xmldir)
   }
   test_get_time(&suite.exec_time);
 
-  /* Setup test cases */
   strcpy(suite.tests[0].test_name, "test_query_points_by_depth_one_two");
   suite.tests[0].test_func = &test_query_points_by_depth_one_two;
   suite.tests[0].elapsed_time = 0.0;
 
-/*
+  strcpy(suite.tests[1].test_name, "test_query_points_by_elevation_one_two");
+  suite.tests[1].test_func = &test_query_points_by_elevation_one_two;
+  suite.tests[1].elapsed_time = 0.0;
+
+  /* Setup test cases */
+  /*
   strcpy(suite.tests[0].test_name, "test_setup");
   suite.tests[0].test_func = &test_setup;
   suite.tests[0].elapsed_time = 0.0;
@@ -385,7 +389,7 @@ int suite_sfcvm_exec(const char *xmldir)
   strcpy(suite.tests[5].test_name, "test_query_points_by_elevation_one_two");
   suite.tests[5].test_func = &test_query_points_by_elevation_one_two;
   suite.tests[5].elapsed_time = 0.0;
-*/
+  */
 
   if (test_run_suite(&suite) != 0) {
     fprintf(stderr, "Failed to execute tests\n");

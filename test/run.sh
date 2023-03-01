@@ -1,6 +1,5 @@
 
-#TOP_LOC=/Users/mei/scec/geomodelgrids/build/bin/.libs
-TOP_LOC=/Users/mei/scec/TARGET_UCVM/ucvm/work/model/sfcvm/dependencies/geomodelgrids-build/bin/.libs
+TOP_LOC=${UCVM_SRC_PATH}/work/model/sfcvm/dependencies/geomodelgrids-build/bin/.libs
 
 rm -rf one-block-flat_latlon.out one-block-fat_utm.out
 rm -rf one-block-flat_latlon.in one-block-fat_utm.in

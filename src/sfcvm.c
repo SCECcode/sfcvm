@@ -253,8 +253,7 @@ void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
 
 void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
     for(int i=0; i< config->data_cnt; i++) {
-       fprintf(stderr,"%d \n", i);
-       fprintf(stderr,"  %s: %s\n",config->data_labels[i], config->data_files[i]);
+       fprintf(stderr,"    <%d>  %s: %s\n",i,config->data_labels[i], config->data_files[i]);
     }
 }
 
@@ -357,7 +356,7 @@ fprintf(stderr,"READING configuration..\n");
     while (fgets(line_holder, sizeof(line_holder), fp) != NULL) {
         if (line_holder[0] != '#' && line_holder[0] != ' ' && line_holder[0] != '\n') {
             sscanf(line_holder, "%s = %s", key, value);
-fprintf(stderr," >> %s\n", line_holder);
+            if(sfcvm_ucvm_debug) fprintf(stderr," >> %s", line_holder);
 
             // Which variable are we editing?
             if (strcmp(key, "utm_zone") == 0) {
@@ -368,9 +367,6 @@ fprintf(stderr," >> %s\n", line_holder);
                 int idx=0;
                 char *p = strchr(line_holder, '=');
                 char *ptr=&line_holder[p-line_holder];
-
-fprintf(stderr,"process data_files configuration..\n");
-fprintf(stderr,"  %s\n",ptr);
 
                 while (ptr) {
                     // look for the label
@@ -387,7 +383,7 @@ fprintf(stderr,"  %s\n",ptr);
        }
 
     }
-    _dump_sfcvm_configuration(config);
+    if(sfcvm_ucvm_debug) _dump_sfcvm_configuration(config);
     // Have we set up all configuration parameters?
     if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
 	    sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");
