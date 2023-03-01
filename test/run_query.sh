@@ -1,8 +1,5 @@
 
-TOP_LOC=${UCVM_SRC_PATH}/work/model/sfcvm/dependencies/geomodelgrids-build/bin/.libs
-
-rm -rf one-block-flat_latlon.out one-block-fat_utm.out
-rm -rf one-block-flat_latlon.in one-block-fat_utm.in
+TOP_LOC=${UCVM_SRC_PATH}/work/model/sfcvm/dependencies/geomodelgrids-build/bin
 
 cat << LATLONE &> one-block-flat_latlon_elev.in
 37.455 -121.941 0.0
@@ -18,9 +15,6 @@ cat << LATLON &> one-block-flat_latlon.in
 37.381 -121.581
 LATLON
 
-
-#--models=../dependencies/geomodelgrids/tests/data/one-block-flat.h5 \
-#--models=../dependencies/geomodelgrids/tests/data/one-block-topo.h5,../dependencies/geomodelgrids/tests/data/three-blocks-flat.h5 \
 
 ${TOP_LOC}/geomodelgrids_query \
 --models=../dependencies/geomodelgrids/tests/data/one-block-topo.h5,../dependencies/geomodelgrids/tests/data/three-blocks-flat.h5 \
