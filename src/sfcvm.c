@@ -118,7 +118,7 @@ int sfcvm_init(const char *dir, const char *label) {
         exit(1);
     }
 
-    for(int i=0; i < 2; i++) {
+    for(int i=0; i < sfcvm_filenames_cnt; i++) {
        sfcvm_filenames[i]= (char *)calloc(1,
            strlen(dir)+(strlen(sfcvm_configuration->model_dir)*2)+strlen(sfcvm_configuration->data_files[i]) +15);
        sprintf(sfcvm_filenames[i],"%s/model/%s/data/%s/%s",
