@@ -1,10 +1,11 @@
 # for sfcvm
-# sfcvm surf 150.046
+# ???sfcvm surf 150.046
+# sfcvm surface  1.0467
 # ucvm surf 1.493
 longitude = -121.941
 latitude = 37.455
-pt_elevation = -155.046
+pt_elevation = -1.0467
 pt_surf = 1.493
-vs = 5310.421932
-vp = -790.59911
-rho = -1.0
+vs = 3230.592
+vp = 5369.973
+rho = 2648.762
