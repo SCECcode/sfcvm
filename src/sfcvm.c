@@ -45,8 +45,8 @@ double sfcvm_total_width_m = 0;
 
 
 /* Values and order to be returned in queries.  */
-static const size_t sfcvm_numValues = 2;
-static const char* const sfcvm_valueNames[2] = { "two", "one" };
+static const size_t sfcvm_numValues = 3;
+static const char* const sfcvm_valueNames[3] = { "Vp", "Vs", "density" };
 
 char* sfcvm_filenames[10];  // max is 10
 int sfcvm_filenames_cnt;
@@ -131,7 +131,6 @@ int sfcvm_init(const char *dir, const char *label) {
     }
 
 
-
     int err = geomodelgrids_squery_initialize(sfcvm_query_obj, sfcvm_filenames,
                   sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_crs);
     assert(!err);
@@ -160,6 +159,9 @@ int sfcvm_setparam(int id, int param, ...)
   va_start(ap, param);
 
   switch (param) {
+    case UCVM_MODEL_PARAM_FORCE_DEPTH_ABOVE_SURF:
+      sfcvm_force_depth = va_arg(ap, int);
+      break;
     case UCVM_PARAM_QUERY_MODE:
       zmode = va_arg(ap,int);
       switch (zmode) {
@@ -170,7 +172,7 @@ int sfcvm_setparam(int id, int param, ...)
         case UCVM_COORD_GEO_ELEV:
 /*****
 even if ucvm_query set elevation mode, still need to run as depth
-from ucvm_query, the depth is already proprocessed with (ucvm_surface - elevation)
+from ucvm_query, the depth is already proprocessed with (ucvm_surface - user_elevation)
           sfcvm_zmode = ZMODE_ELEV;
 ****/
           if(sfcvm_ucvm_debug) fprintf(stderr,"calling sfcvm_setparam >>  elevation\n");
@@ -195,48 +197,69 @@ from ucvm_query, the depth is already proprocessed with (ucvm_surface - elevatio
  */
 int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) {
 
+// NOTE: even though 3rd item in points struct is name 'depth', it could be depth in
+// elevation data model or depth in depth data model 
+
     double values[sfcvm_numValues];
+    double entry_latitude;
+    double entry_longitude;
+    double entry_depth;
+    double entry_elevation;
+    double surfaceElev;
+
     for(int i=0; i<numpoints; i++) {
 
-        double latitude=points[i].latitude;
-        double longitude=points[i].longitude;
-        double depth=points[i].depth; // UCVM depth = ucvm_surf - elevation 
-        double elevation;
+      /* Force depth mode if directed and point is above surface */
+      if ((sfcvm_force_depth) && (sfcvm_zmode == ZMODE_ELEV) &&
+          (points[i].depth < 0.0)) {
 
-        // need to calculate elevation before calling undelying model
+fprintf(stderr," **** in HERE looking for a new surface ..\n");
+        /* Setup point to query */
+        entry_longitude=points[i].longitude;
+        entry_latitude=points[i].latitude;
 
-        const double surfaceElev = geomodelgrids_squery_queryTopElevation(sfcvm_query_obj, latitude, longitude);
+        // need to retrieve sfcvm elevation before calling undelying model
+        surfaceElev = geomodelgrids_squery_queryTopElevation(sfcvm_query_obj, entry_latitude, entry_longitude);
 
-        if(surfaceElev != NO_DATA) {
-            elevation = surfaceElev - depth;
-            } else { 
-               // or use ucvm surface ???
-               // elevation = points[i].surf - depth;
-	       sfcvm_print_error("BAD.. no surface data here.");
-	       return UCVM_CODE_ERROR;
+        if(sfcvm_ucvm_debug) {
+           fprintf(stderr, "sfcvm_query: surface is %f vs initial query depth %f\n", surfaceElev, points[i].depth);
         }
-            
 
-if(sfcvm_ucvm_debug) {
-fprintf(stderr,"\n **** Calling squery sfcvm surface (%lf) supplied depth(%lf) \n", surfaceElev, depth);
-fprintf(stderr," **** Calling squery with..lon(%lf) lat(%lf) elevation(%lf) \n\n",
-                  longitude, latitude, elevation);
-}
+        if (surfaceElev - NO_DATA < 0.01) {
+          /* Fallback to using UCVM topo */
+          entry_elevation=points[i].depth;
+        } else {
+          if(sfcvm_ucvm_debug) {
+            fprintf(stderr,"POTENTIAL problem if sfcvm surface differ from UCVM surface !!!\n");
+          }
+          entry_elevation=surfaceElev - points[i].depth;
+        }
+      } else {
+        /* Setup with direct point to query */
+        entry_longitude=points[i].longitude;
+        entry_latitude=points[i].latitude;
+        entry_elevation=points[i].depth;
+      }
 
-/*** XXX ??? need to do elevation squashing ???  ****/
 
-        int err = geomodelgrids_squery_query(sfcvm_query_obj, values, latitude, longitude, elevation);
+      if(sfcvm_ucvm_debug) {
+        fprintf(stderr," **** Calling squery with..lon(%lf) lat(%lf) elevation(%lf) \n\n",
+                                                 entry_longitude, entry_latitude, entry_elevation);
+      }
 
-fprintf(stderr,"calling query error code %d\n", err);
-        if(err) {
-            data[i].vp=-1;
-            data[i].vs=-1;
-            data[i].rho=-1;
-            } else {
-                data[i].vp=values[0];
-                data[i].vs=values[1];
-// XX not sure where is this..
-                data[i].rho=-1;
+      int err = geomodelgrids_squery_query(sfcvm_query_obj, values, entry_latitude, entry_longitude, entry_elevation);
+
+      if(sfcvm_ucvm_debug) {
+        fprintf(stderr,"rc from calling squery ==> %d\n", err);
+      }
+      if(err) {
+        data[i].vp=-1;
+        data[i].vs=-1;
+        data[i].rho=-1;
+        } else {
+            data[i].vp=values[0];
+            data[i].vs=values[1];
+            data[i].rho=values[2];
         }
   }
   return UCVM_CODE_SUCCESS;

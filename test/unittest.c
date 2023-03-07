@@ -19,7 +19,6 @@ int main (int argc, char *argv[])
 
   /* Run test suites */
   suite_sfcvm_exec(xmldir);
-//  suite_vx_sfcvm_exec(xmldir);
 
   return 0;
 }
