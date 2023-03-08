@@ -215,25 +215,23 @@ int runSFCVM(const char *bindir, const char *cvmdir,
   return(0);
 }
 
-int runVXSFCVM(const char *bindir, const char *cvmdir, 
+int runUCVMSFCVM(const char *bindir, const char *cvmdir, 
 	  const char *infile, const char *outfile, int mode)
 {
   char currentdir[1280];
   char runpath[1280];
   char flags[1280]="";
 
-  sprintf(runpath, "%s/run_vx_sfcvm.sh", bindir);
+  sprintf(runpath, "%s/run_ucvm_sfcvm.sh", bindir);
 
   switch (mode) {
     case MODE_ELEVATION:
-      sprintf(flags, "-z elev ");
+      sprintf(flags, "-c ge ");
       break;
     case MODE_DEPTH:
-      sprintf(flags, "-z dep ");
+      sprintf(flags, "-c gd ");
       break;
   }
-
-  if(debug_mode) { strcat(flags, "-g "); }
 
   /* Save current directory */
   getcwd(currentdir, 1280);
@@ -247,7 +245,7 @@ int runVXSFCVM(const char *bindir, const char *cvmdir,
   } else if (pid == 0) {
     /* Change dir to cvmdir */
     if (chdir(bindir) != 0) {
-      printf("FAIL: Error changing dir in run_vx_sfcvm.sh\n");
+      printf("FAIL: Error changing dir in run_ucvm_sfcvm.sh\n");
       return(1);
     }
 

@@ -1,11 +1,13 @@
 # for sfcvm
-# ???sfcvm surf 150.046
 # sfcvm surface  1.0467
 # ucvm surf 1.493
+# using ucvm_depth 3000
 longitude = -121.941
 latitude = 37.455
-pt_elevation = -1.0467
-pt_surf = 1.493
+# pt_surf = sfcvm surface
+pt_surf = 1.0467
+# pt_elevation = pt_surf - ucvm_depth 
+pt_elevation = -2998.9533
 vs = 3230.592
 vp = 5369.973
 rho = 2648.762

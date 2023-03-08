@@ -169,6 +169,7 @@ int test_query_by_elevation()
   }
 }
 
+
 int suite_sfcvm_exec(const char *xmldir)
 {
   suite_t suite;

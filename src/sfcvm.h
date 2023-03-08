@@ -40,8 +40,6 @@ typedef struct sfcvm_point_t {
 	double latitude;
 	/** Depth member of the point */
 	double depth;
-	/** UCVM surface of the point */
-	double surf;
 } sfcvm_point_t;
 
 /** Defines the material properties this model will retrieve. */
