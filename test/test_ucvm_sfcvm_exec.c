@@ -32,9 +32,9 @@ int test_ucvm_sfcvm_points_ge()
   getcwd(currentdir, 1000);
 
 // ge part
-  sprintf(infile, "%s/%s", currentdir, "./inputs/test_latlons_sfcvm_ge.txt");
-  sprintf(outfile, "%s/%s", currentdir, "test_latlons_sfcvm_ge.out");
-  sprintf(reffile, "%s/%s", currentdir, "./ref/test_latlons_sfcvm_ge.ref");
+  sprintf(infile, "%s/%s", currentdir, "./inputs/test_ucvm_sfcvm_ge.txt");
+  sprintf(outfile, "%s/%s", currentdir, "test_ucvm_sfcvm_ge.out");
+  sprintf(reffile, "%s/%s", currentdir, "./ref/test_ucvm_sfcvm_ge.ref");
 
   if (test_assert_file_exist(infile) != 0) {
     printf("file:%s not found\n",infile);
@@ -71,9 +71,9 @@ int test_ucvm_sfcvm_points_gd()
   getcwd(currentdir, 1000);
 
 // ge part
-  sprintf(infile, "%s/%s", currentdir, "./inputs/test_latlons_sfcvm_gd.txt");
-  sprintf(outfile, "%s/%s", currentdir, "test_latlons_sfcvm_gd.out");
-  sprintf(reffile, "%s/%s", currentdir, "./ref/test_latlons_sfcvm_gd.ref");
+  sprintf(infile, "%s/%s", currentdir, "./inputs/test_ucvm_sfcvm_gd.txt");
+  sprintf(outfile, "%s/%s", currentdir, "test_ucvm_sfcvm_gd.out");
+  sprintf(reffile, "%s/%s", currentdir, "./ref/test_ucvm_sfcvm_gd.ref");
 
   if (test_assert_file_exist(infile) != 0) {
     printf("file:%s not found\n",infile);

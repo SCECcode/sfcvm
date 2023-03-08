@@ -36,7 +36,7 @@ cat <<  U &> geomodelgrids_utm.in
 U
 
 
-echo "\n====== squash:none "
+echo "====== squash:none "
 ${TOP_LOC}/geomodelgrids_query \
 --models=../data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 \
 --points=./geomodelgrids_depth.in \
@@ -44,7 +44,7 @@ ${TOP_LOC}/geomodelgrids_query \
 --values=Vs,Vp,density \
 --points-coordsys=EPSG:4326 
 
-echo "\n====== squash:top_surface "
+echo "====== squash:top_surface "
 ${TOP_LOC}/geomodelgrids_query \
 --models=../data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 \
 --points=./geomodelgrids_depth.in \
@@ -53,7 +53,7 @@ ${TOP_LOC}/geomodelgrids_query \
 --squash-surface=top_surface \
 --points-coordsys=EPSG:4326 
 
-echo "\n====== queryelev "
+echo "====== queryelev "
 ${TOP_LOC}/geomodelgrids_queryelev \
 --models=../data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 \
 --points=./geomodelgrids_latlon.in \
@@ -61,7 +61,7 @@ ${TOP_LOC}/geomodelgrids_queryelev \
 --points-coordsys=EPSG:4326 \
 
 
-echo "\n====== utm query "
+echo "====== utm query "
 ${TOP_LOC}/geomodelgrids_query \
 --models=../data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 \
 --points=./geomodelgrids_utm.in \
@@ -69,7 +69,7 @@ ${TOP_LOC}/geomodelgrids_query \
 --values=Vs,Vp,density \
 --points-coordsys=EPSG:26910 
 
-echo "\n====== info "
+echo "====== info "
 ${TOP_LOC}/geomodelgrids_info \
 --models=../data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 \
 --all
