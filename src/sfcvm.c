@@ -128,7 +128,7 @@ int sfcvm_init(const char *dir, const char *label) {
            sfcvm_configuration->model_dir,
            sfcvm_configuration->data_files[i]);
 
-       fprintf(stderr,"using %s\n", sfcvm_filenames[i]);
+       if(sfcvm_ucvm_debug) fprintf(stderr,"using %s\n", sfcvm_filenames[i]);
     }
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
@@ -389,8 +389,6 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
     char key[40];
     char value[2000];
     char line_holder[2000];
-
-fprintf(stderr,"READING configuration..\n");
 
     // If our file pointer is null, an error has occurred. Return fail.
     if (fp == NULL) {
