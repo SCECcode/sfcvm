@@ -6,6 +6,11 @@
 
 TOP_LOC=../dependencies/geomodelgrids-build/bin/.libs
 
+if [ ! -f ${TOP_LOC}/geomodelgrids_query ]; then
+  echo "Need to run 'make' at ../dependencies/geomodelgrids-build " 
+  exit
+fi
+
 cat << A &> geomodelgrids_latlon.in
 37.455 -121.941 
 37.479 -121.734 
