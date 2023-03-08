@@ -1,6 +1,6 @@
 # Autoconf/automake file
 
-bin_PROGRAMS = query unittest 
+bin_PROGRAMS = unittest 
 
 AM_CFLAGS = -DDYNAMIC_LIBRARY -I../src -Wall -std=c99
 AM_LDFLAGS = -L../src -lsfcvm -lm -ldl
@@ -10,8 +10,8 @@ AM_CPPFLAGS = -I$(prefix)/include
 #unittest_SOURCES = *.c *.h
 accepttest_SOURCES = *.c *.h
 
-query_SOURCES = query.c
-query_LDADD = $(prefix)/lib/libgeomodelgrids.la
+#query_SOURCES = query.c
+#query_LDADD = $(prefix)/lib/libgeomodelgrids.la
 
 TARGETS = $(bin_PROGRAMS)
 
@@ -23,7 +23,7 @@ all: $(bin_PROGRAMS)
 # Executables
 ############################################
 
-unittest: unittest.o unittest_defs.o test_helper.o test_vx_sfcvm_exec.o test_sfcvm_exec.o
+unittest: unittest.o unittest_defs.o test_helper.o test_ucvm_sfcvm_exec.o test_sfcvm_exec.o
 	$(CC) -o $@ $^ $(AM_LDFLAGS)
 
 run_unit : unittest

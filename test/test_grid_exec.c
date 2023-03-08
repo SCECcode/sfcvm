@@ -2,8 +2,6 @@
    test_grid_exec.c
 
 
-   invokes src/run_vx_sfcvm.sh/vx_sfcvm
-           
 **/
 
 #include <string.h>

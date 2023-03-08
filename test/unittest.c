@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <getopt.h>
 #include "unittest_defs.h"
-#include "test_vx_sfcvm_exec.h"
+#include "test_ucvm_sfcvm_exec.h"
 #include "test_sfcvm_exec.h"
 
 

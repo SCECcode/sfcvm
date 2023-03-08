@@ -14,10 +14,6 @@
 #define MODE_DEPTH 4
 
 /* Test data sets */
-typedef enum { VX_TEST_DATASET_NOBKG = 0, 
-	       VX_TEST_DATASET_BKG, 
-	       VX_TEST_DATASET_NOGTL } vx_test_dataset_t;
-
 /* the point structure with surf instead of depth */ 
 typedef struct sfcvm_surf_t {
         /** Longitude member of the point */
@@ -44,16 +40,13 @@ int get_elev_test_point(sfcvm_point_t *pt, sfcvm_properties_t *expect,
 /* Retrieve expected surface elev at the test points */
 int get_surf_values(double *surf_values);
 
-/* Retrieve expected mat props at the test points */
-int get_mat_props(float *vp, float *vs, double *rho, vx_test_dataset_t ds);
-
 /* run with model api */
 int runSFCVM(const char *bindir, const char *cvmdir, 
 	  const char *infile, const char *outfile,
           int mode);
 
-/* Execute vx_cvmhibbn as a child process */
-int runVXSFCVM(const char *bindir, const char *cvmdir, 
+/* Execute ucvm_query as a child process */
+int runUCVMSFCVM(const char *bindir, const char *cvmdir, 
 	  const char *infile, const char *outfile,
           int mode);
 

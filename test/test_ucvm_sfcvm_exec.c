@@ -15,7 +15,7 @@
 #include <getopt.h>
 #include "unittest_defs.h"
 #include "test_helper.h"
-#include "test_vx_sfcvm_exec.h"
+#include "test_ucvm_sfcvm_exec.h"
 
 int UCVM_TESTS=2;
 
@@ -97,16 +97,16 @@ int test_ucvm_sfcvm_points_gd()
   return(0);
 }
 
-int suite_vx_sfcvm_exec(const char *xmldir)
+int suite_ucvm_sfcvm_exec(const char *xmldir)
 {
   suite_t suite;
   char logfile[1280];
   FILE *lf = NULL;
 
   /* Setup test suite */
-  strcpy(suite.suite_name, "suite_vx_sfcvm_exec");
+  strcpy(suite.suite_name, "suite_ucvm_sfcvm_exec");
 
-  suite.num_tests = VX_TESTS;
+  suite.num_tests = UCVM_TESTS;
   suite.tests = malloc(suite.num_tests * sizeof(test_t));
   if (suite.tests == NULL) {
     fprintf(stderr, "Failed to alloc test structure\n");
@@ -115,12 +115,12 @@ int suite_vx_sfcvm_exec(const char *xmldir)
   test_get_time(&suite.exec_time);
 
   /* Setup test cases */
-  strcpy(suite.tests[0].test_name, "test_vx_sfcvm_points_gd");
-  suite.tests[0].test_func = &test_vx_sfcvm_points_gd;
+  strcpy(suite.tests[0].test_name, "test_ucvm_sfcvm_points_gd");
+  suite.tests[0].test_func = &test_ucvm_sfcvm_points_gd;
   suite.tests[0].elapsed_time = 0.0;
 
-  strcpy(suite.tests[1].test_name, "test_vx_sfcvm_points_ge");
-  suite.tests[1].test_func = &test_vx_sfcvm_points_ge;
+  strcpy(suite.tests[1].test_name, "test_ucvm_sfcvm_points_ge");
+  suite.tests[1].test_func = &test_ucvm_sfcvm_points_ge;
   suite.tests[1].elapsed_time = 0.0;
 
   if (test_run_suite(&suite) != 0) {
