@@ -39,7 +39,7 @@ U
 echo "\n====== squash:none "
 ${TOP_LOC}/geomodelgrids_query \
 --models=../data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 \
---points=./geomodelgrids_depth.in
+--points=./geomodelgrids_depth.in \
 --output=./geomodelgrids_depth.out \
 --values=Vs,Vp,density \
 --points-coordsys=EPSG:4326 
