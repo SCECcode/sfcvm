@@ -79,8 +79,7 @@ def main():
     subprocess.check_call(["mkdir", "-p", mdir])
 
 ## model's data file
-    flist= [ 'USGS_SFCVM_v21-1_detailed.h5', 'one-block-topo.h5', 'three-blocks-flat.h5' ]
-##    flist= [ 'one-block-topo.h5', 'three-blocks-flat.h5' ]
+    flist= [ 'USGS_SFCVM_v21-1_detailed.h5' ]
 
     for f in flist :
         fname = mdir + "/" +f
