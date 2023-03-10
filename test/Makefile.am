@@ -10,8 +10,9 @@ AM_CPPFLAGS = -I$(prefix)/include
 #unittest_SOURCES = *.c *.h
 accepttest_SOURCES = *.c *.h
 
-#query_SOURCES = query.c
-#query_LDADD = $(prefix)/lib/libgeomodelgrids.la
+query_SOURCES = query.c
+query_LDFLAGS = -L$(prefix)/lib -lgeomodelgrids
+#../dependencies/geomodelgrids-build/libsrc/geomodelgrids/libgeomodelgrids.la
 
 TARGETS = $(bin_PROGRAMS)
 
@@ -25,6 +26,9 @@ all: $(bin_PROGRAMS)
 
 unittest: unittest.o unittest_defs.o test_helper.o test_ucvm_sfcvm_exec.o test_sfcvm_exec.o
 	$(CC) -o $@ $^ $(AM_LDFLAGS)
+
+query : query.c
+	$(CC) -o $@ $^ $(query_LDFLAGS)
 
 run_unit : unittest
 	./run_unit

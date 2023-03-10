@@ -2,8 +2,8 @@
  Application illustrating how to use the C API to query models.
  */
 
-#include "geomodelgrids/serial/cquery.h"
-#include "geomodelgrids/utils/cerrorhandler.h"
+#include "../dependencies/geomodelgrids/libsrc/geomodelgrids/serial/cquery.h"
+#include "../dependencies/geomodelgrids/libsrc/geomodelgrids/utils/cerrorhandler.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -13,10 +13,10 @@
 int
 main(int argc,
      char* argv[]) {
-    /* In this example, we hardwire the parameters for
-     * convenience. See the C++ query application (bin/query.cc) for a
-     * more sophisticated interface.
-     */
+        /* In this example, we hardwire the parameters for
+         * convenience. See the C++ query application (bin/query.cc) for a
+         * more sophisticated interface.
+         */
 
     /* Models to query. */
     static const size_t numModels = 2;
@@ -25,36 +25,36 @@ main(int argc,
         "../dependencies/geomodelgrids/tests/data/three-blocks-flat.h5",
     };
 
-    /* Values and order to be returned in queries.
-     */
+        /* Values and order to be returned in queries.
+         */
     static const size_t numValues = 2;
     static const char* const valueNames[2] = { "two", "one" };
 
-    /* Coordinate reference system of points passed to queries.
-     *
-     * The string can be in the form of EPSG:XXXX, WKT, or Proj
-     * parameters. In this case, we will specify the coordinates in
-     * latitude, longitude, elevation in the WGS84 horizontal
-     * datum. The elevation is with respect to the WGS84 ellipsoid.
-     */
+        /* Coordinate reference system of points passed to queries.
+         *
+         * The string can be in the form of EPSG:XXXX, WKT, or Proj
+         * parameters. In this case, we will specify the coordinates in
+         * latitude, longitude, elevation in the WGS84 horizontal
+         * datum. The elevation is with respect to the WGS84 ellipsoid.
+         */
     static const char* const crs = "EPSG:4326";
     static const size_t spaceDim = 3;
 
-    /* Create and initialize serial query object using the parameters
-     * stored in local variables.
-     */
+        /* Create and initialize serial query object using the parameters
+         * stored in local variables.
+         */
     void* query = geomodelgrids_squery_create();assert(query);
     int err = geomodelgrids_squery_initialize(query, filenames, numModels, valueNames, numValues, crs);assert(!err);
 
-    /* Log warnings and errors to "error.log". */
+        /* Log warnings and errors to "error.log". */
     void* errorHandler = geomodelgrids_squery_getErrorHandler(query);assert(errorHandler);
     geomodelgrids_cerrorhandler_setLogFilename(errorHandler, "error.log");
 
-    /* Coordinates of points for query (latitude, longitude, elevation). */
+        /* Coordinates of points for query (latitude, longitude, elevation). */
     static const size_t numPoints = 16;
     static const double points[16*3] = {
         /* Points in one-block-topo model */
-        37.455, -121.941, 0.0,
+        37.455, -121.941, 0.0, 
         37.479, -121.734, -5.0e+3,
         37.381, -121.581, -3.0e+3,
         37.283, -121.959, -1.5e+3,
@@ -70,7 +70,8 @@ main(int argc,
 
         /* Points not in either model domain */
         34.7, -117.8, 1.0e+4,
-        35.0, -117.6, -45.1e+3,
+        37.455, -121.941, 0.0, 
+/*        35.0, -117.6, -45.1e+3, */
         34.3, -117.8, -3.0e+3,
         35.0, -113.0, -15.0e+3,
         42.0, -117.8, -25.0e+3,
@@ -134,16 +135,21 @@ main(int argc,
         GEOMODELGRIDS_NODATA_VALUE,
     };
 
-    /* Query for values at points. We must preallocate the array holding the values. */
+       /* Query for values at points. We must preallocate the array holding the values. */
     double values[numValues];
+
     for (size_t iPt = 0; iPt < numPoints; ++iPt) {
         const double latitude = points[iPt*spaceDim+0];
         const double longitude = points[iPt*spaceDim+1];
         const double elevation = points[iPt*spaceDim+2];
+
         const int err = geomodelgrids_squery_query(query, values, latitude, longitude, elevation);
+if(err) { fprintf(stderr,"\n     XXXXX ERROR from backend ..for %lf %lf %lf\n", latitude, longitude, elevation); }
+    else { fprintf(stderr,"\n     XXXXX OKAY from backend ..for %lf %lf %lf\n", latitude, longitude, elevation); }
 
         /* Query for elevation of top surface. */
         const double surfaceElev = geomodelgrids_squery_queryTopElevation(query, latitude, longitude);
+        { fprintf(stderr,"     XXXXX surfaceElev(%lf) --  for %lf %lf %lf\n", surfaceElev, latitude, longitude, elevation); }
 
         /* Use the values returned in the query. In this case we check the values against the expected ones.
          *
@@ -188,6 +194,7 @@ main(int argc,
     } /* for */
 
     /* Destroy query object. */
+fprintf(stderr,"     XXXXX calling squery_destroy \n");
     geomodelgrids_squery_destroy(&query);assert(!query);
 
     return 0;
