@@ -63,8 +63,10 @@ const char* const sfcvm_utm_crs = "EPSG:26910";
 // WGS84
 const char* const sfcvm_geo_crs = "EPSG:4326";
 
-void* sfcvm_query_geo_obj=0;
-void* sfcvm_query_utm_obj=0;
+void* sfcvm_geo_query_object=0;
+void* sfcvm_utm_query_object=0;
+void* sfcvm_geo_error_handler=0;
+void* sfcvm_utm_error_handler=0;
 
 const size_t sfcvm_spaceDim = 3;
 
@@ -132,28 +134,28 @@ int sfcvm_init(const char *dir, const char *label) {
     }
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
-    sfcvm_query_geo_obj = geomodelgrids_squery_create();
-    assert(sfcvm_query_geo_obj);
+    sfcvm_geo_query_object = geomodelgrids_squery_create();
+    assert(sfcvm_geo_query_object);
 
-/** Log warnings and errors to "sfcvm_geo_error.log".
-    void* geo_errorHandler = geomodelgrids_squery_getErrorHandler(sfcvm_query_geo_obj);
-    assert(geo_errorHandler);
-    geomodelgrids_cerrorhandler_setLogFilename(geo_errorHandler, "sfcvm_geo_error.log");
-**/
-    int geo_err=geomodelgrids_squery_initialize(sfcvm_query_geo_obj, sfcvm_filenames,
+/** Log warnings and errors to "sfcvm_geo_error.log". **/
+    sfcvm_geo_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_geo_query_object);
+    assert(sfcvm_geo_error_handler);
+//    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_geo_error_handler, "sfcvm_geo_error.log");
+
+    int geo_err=geomodelgrids_squery_initialize(sfcvm_geo_query_object, sfcvm_filenames,
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_geo_crs);
     assert(!geo_err);
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
-    sfcvm_query_utm_obj = geomodelgrids_squery_create();
-    assert(sfcvm_query_utm_obj);
+    sfcvm_utm_query_object = geomodelgrids_squery_create();
+    assert(sfcvm_utm_query_object);
 
-/** Log warnings and errors to "sfcvm_geo_error.log".
-    void* utm_errorHandler = geomodelgrids_squery_getErrorHandler(sfcvm_query_geo_obj);
-    assert(utm_errorHandler);
-    geomodelgrids_cerrorhandler_setLogFilename(utm_errorHandler, "sfcvm_utm_error.log");
-**/
-    int utm_err=geomodelgrids_squery_initialize(sfcvm_query_utm_obj, sfcvm_filenames,
+/** Log warnings and errors to "sfcvm_utm_error.log". **/
+    sfcvm_utm_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_utm_query_object);
+    assert(sfcvm_utm_error_handler);
+//    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_utm_error_handler, "sfcvm_utm_error.log");
+
+    int utm_err=geomodelgrids_squery_initialize(sfcvm_utm_query_object, sfcvm_filenames,
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_utm_crs);
     assert(!utm_err);
 
@@ -227,19 +229,33 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
     double surfaceElev;
 
     void *query_object;
+    void *error_handler;
 
     for(int i=0; i<numpoints; i++) {
+
+      data[i].vp=-1;
+      data[i].vs=-1;
+      data[i].rho=-1;
 
       /* Force depth mode if directed and point is above surface */
       /* Setup point to query */
       entry_longitude=points[i].longitude;
       entry_latitude=points[i].latitude;
 
+
+      if(sfcvm_ucvm_debug) {
+        fprintf(stderr, "\nsfcvm_query: USING lat(%lf)) lon(%lf) depth(%lf)\n", 
+			points[i].latitude, points[i].longitude, points[i].depth);
+      }
+
+
       if ((entry_longitude<360.) && (fabs(entry_latitude)<90)) {
         // GEO;
-        query_object= sfcvm_query_geo_obj;
+        query_object= sfcvm_geo_query_object;
+	error_handler= sfcvm_geo_error_handler;
         } else { // UTM;
-          query_object= sfcvm_query_utm_obj;
+          query_object= sfcvm_utm_query_object;
+	  error_handler= sfcvm_utm_error_handler;
       }
 
       // need to retrieve sfcvm elevation before calling undelying model
@@ -249,13 +265,16 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
          fprintf(stderr, "sfcvm_query: surface is %f vs initial query depth %f\n", surfaceElev, points[i].depth);
       }
 
+      if( surfaceElev == NO_DATA ) { // outside of the model
+        if(sfcvm_ucvm_debug) { fprintf(stderr,"        OUTside of MODEL by NO_DATA surface..\n"); }
+        geomodelgrids_cerrorhandler_resetStatus(error_handler);
+	continue;
+      }
+
       if (surfaceElev - NO_DATA < 0.01) {
         /* Fallback to using UCVM topo */
         entry_elevation=points[i].depth;
       } else {
-        if(sfcvm_ucvm_debug) {
-          fprintf(stderr,"POTENTIAL problem if sfcvm surface differ from UCVM surface !!!\n");
-        }
         entry_elevation=surfaceElev - points[i].depth;
       }
 
@@ -267,17 +286,15 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       int err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
 
       if(sfcvm_ucvm_debug) {
-        fprintf(stderr,"rc from calling squery ==> %d\n", err);
+        fprintf(stderr,"rc from calling squery ==> %d(0 okay, 1 bad)\n", err);
       }
-      if(err) {
-        data[i].vp=-1;
-        data[i].vs=-1;
-        data[i].rho=-1;
-        } else {
-            data[i].vp=values[0];
-            data[i].vs=values[1];
-            data[i].rho=values[2];
-        }
+      if(!err) {
+        data[i].vp=values[0];
+        data[i].vs=values[1];
+        data[i].rho=values[2];
+        } else { // need to reset the error handler
+             geomodelgrids_cerrorhandler_resetStatus(error_handler);
+      }		
   }
   return UCVM_CODE_SUCCESS;
 }
@@ -310,13 +327,11 @@ int sfcvm_finalize() {
     free(sfcvm_config_string);
 
 /* Destroy query object. */
-    geomodelgrids_squery_destroy(&sfcvm_query_geo_obj);
-    assert(!sfcvm_query_geo_obj);
-    sfcvm_query_geo_obj=0;
+    geomodelgrids_squery_destroy(&sfcvm_geo_query_object);
+    sfcvm_geo_query_object=0;
 
-    geomodelgrids_squery_destroy(&sfcvm_query_utm_obj);
-    assert(!sfcvm_query_utm_obj);
-    sfcvm_query_utm_obj=0;
+    geomodelgrids_squery_destroy(&sfcvm_utm_query_object);
+    sfcvm_utm_query_object=0;
 
     return UCVM_CODE_SUCCESS;
 }
