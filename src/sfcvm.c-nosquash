@@ -140,15 +140,11 @@ int sfcvm_init(const char *dir, const char *label) {
 /** Log warnings and errors to "sfcvm_geo_error.log". **/
     sfcvm_geo_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_geo_query_object);
     assert(sfcvm_geo_error_handler);
-    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_geo_error_handler, "sfcvm_geo_error.log");
+//    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_geo_error_handler, "sfcvm_geo_error.log");
 
     int geo_err=geomodelgrids_squery_initialize(sfcvm_geo_query_object, sfcvm_filenames,
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_geo_crs);
     assert(!geo_err);
-
-    int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
-    assert(!geo_setsquash);
-    int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, -10.0e+3);
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
     sfcvm_utm_query_object = geomodelgrids_squery_create();
@@ -157,15 +153,11 @@ int sfcvm_init(const char *dir, const char *label) {
 /** Log warnings and errors to "sfcvm_utm_error.log". **/
     sfcvm_utm_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_utm_query_object);
     assert(sfcvm_utm_error_handler);
-    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_utm_error_handler, "sfcvm_utm_error.log");
+//    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_utm_error_handler, "sfcvm_utm_error.log");
 
     int utm_err=geomodelgrids_squery_initialize(sfcvm_utm_query_object, sfcvm_filenames,
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_utm_crs);
     assert(!utm_err);
-
-    int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
-    assert(!utm_setsquash);
-    int utm_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, -10.0e+3);
 
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
@@ -234,7 +226,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
     double entry_longitude;
     double entry_depth;
     double entry_elevation;
-    double topElev, topoBathyElev;
+    double surfaceElev,topoBathyElev;
 
     void *query_object;
     void *error_handler;
@@ -267,29 +259,29 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       }
 
       // need to retrieve sfcvm elevation before calling undelying model
-      topElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
+      surfaceElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
       topoBathyElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
 
       if(sfcvm_ucvm_debug) {
-         fprintf(stderr, "sfcvm_query: top surface %f, topoBathy surface %f\n", topElev, topoBathyElev);
+         fprintf(stderr, "sfcvm_query: top surface %f, topoBathy surface %f and depth %f\n", 
+			   surfaceElev, topoBathyElev, points[i].depth);
       }
 
-      if( topElev == NO_DATA ) { // outside of the model
+      if( surfaceElev == NO_DATA ) { // outside of the model
         if(sfcvm_ucvm_debug) { fprintf(stderr,"        OUTside of MODEL by NO_DATA surface..\n"); }
         geomodelgrids_cerrorhandler_resetStatus(error_handler);
 	continue;
       }
 
-fprintf(stderr,"HERE.. %lf \n", (topElev- NO_DATA));
-
-      if (topElev - NO_DATA < 0.01) { 
-        entry_elevation= 0.0 ;
+      if (surfaceElev - NO_DATA < 0.01) {
+        /* Fallback to using UCVM topo */
+        entry_elevation=points[i].depth;
       } else {
-        entry_elevation= 0.0 - points[i].depth;
+        entry_elevation=surfaceElev - points[i].depth;
       }
 
       if(sfcvm_ucvm_debug) {
-        fprintf(stderr," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n\n",
+        fprintf(stderr," **** Calling squery with..lon(%lf) lat(%lf) elevation(%lf) \n\n",
                                                  entry_longitude, entry_latitude, entry_elevation);
       }
 
