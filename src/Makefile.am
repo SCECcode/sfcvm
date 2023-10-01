@@ -4,7 +4,7 @@
 AM_CFLAGS = ${CFLAGS} -I$(prefix)/include
 AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib -lgeomodelgrids
 
-TARGETS = libsfcvm.a libsfcvm.so
+TARGETS = ucvm_sfcvm libsfcvm.a libsfcvm.so
 
 all: $(TARGETS)
 
@@ -27,7 +27,10 @@ sfcvm.o: sfcvm.c
 	
 sfcvm_static.o: sfcvm.c
 	$(CC) $(AM_CFLAGS) -o $@ -c $^ 
-	
+
+ucvm_sfcvm : ucvm_sfcvm.o libsfcvm.a
+	$(FC) -o $@ $^ $(AM_LDFLAGS)
+
 clean:
 	rm -rf $(TARGETS)
 	rm -rf *.o 

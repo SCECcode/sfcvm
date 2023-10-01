@@ -1,0 +1,18 @@
+echo "==== SQUASHING LAND ===="
+echo " UCVM surface is : 342.921"
+geomodelgrids_queryelev --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --points=./land_latlon.in --output=./land_latlon.out --points-coordsys=EPSG:4326
+more land_latlon.out
+echo "===="
+
+geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --points=./land_nosquash.in --output=./land_nosquash.out --values=Vp,Vs,density 
+more land_nosquash.in
+echo "..."
+more land_nosquash.out
+echo "----"
+geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --points=./land_squash.in --output=./land_squash.out --values=Vp,Vs,density --squash-min-elev=-5000.0 --squash-surface=top_surface
+more land_squash.in
+echo "..."
+more land_squash.out
+
+
+

@@ -1,0 +1,6 @@
+ucvm_query  -m 1d -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
+ucvm_query  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
+ucvm_query  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,-100
+
+
+

@@ -1,5 +1,5 @@
 /*
- Application illustrating how to use the C API to query models.
+ Application illustrating how to use the geomodelgrid's C API to query models.
  */
 
 #include "../dependencies/geomodelgrids/libsrc/geomodelgrids/serial/cquery.h"

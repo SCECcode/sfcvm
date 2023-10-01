@@ -1,0 +1,85 @@
+SQUASHING.. LAND
+
+echo "===="
+echo " UCVM surface is : 342.921"
+geomodelgrids_queryelev --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --p
+oints=./nosquash_latlon.in --output=./nosquash_latlon.out --points-coordsys=EPSG:4326
+more nosquash_latlon.out
+echo "===="
+
+geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --point
+s=./nosquash.in --output=./nosquash.out --values=Vp,Vs,density 
+cat nosquash.in
+cat nosquash.out
+
+geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --point
+s=./squash.in --output=./squash.out --values=Vp,Vs,density --squash-min-elev=-5000.0 --squash-surface=top_sur
+face
+cat squash.in
+cat squash.out
+
+
+[mei@login13.frontier southbay-small]$ more nosquash.in
+3.880900e+01 -1.224965e+02  369.1460
+3.880900e+01 -1.224965e+02  269.1460
+3.880900e+01 -1.224965e+02  3.691460e+02
+3.880900e+01 -1.224965e+02  2.691460e+02
+[mei@login13.frontier southbay-small]$ more squash.in
+3.880900e+01 -1.224965e+02     0.0
+3.880900e+01 -1.224965e+02  -100.0
+
+
+SQUASHING ..  WATER
+
+
+
+echo "===="
+echo " UCVM surface is : -69"
+geomodelgrids_queryelev --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --p
+oints=./nosquash_latlon2.in --output=./nosquash_latlon2.out --points-coordsys=EPSG:4326
+more nosquash_latlon2.out
+echo "===="
+
+geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --point
+s=./nosquash2.in --output=./nosquash2.out --values=Vp,Vs,density 
+cat nosquash2.in
+cat nosquash2.out
+
+geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --point
+s=./squash2.in --output=./squash2.out --values=Vp,Vs,density --squash-min-elev=-5000.0 --squash-surface=top_s
+urface
+cat squash2.in
+cat squash2.out
+
+
+[mei@login13.frontier southbay-small]$ more squash2.in nosquash2.in
+::::::::::::::
+squash2.in
+::::::::::::::
+37.8109 -122.9535 0
+37.8109 -122.9535 -100
+::::::::::::::
+nosquash2.in
+::::::::::::::
+37.8109 -122.9535 2.645523e-03
+
+SQUASHING ..  Elevation
+
+
+echo "UCVM: -450,  -69"
+cat te.in
+echo "======"
+
+geomodelgrids_queryelev --models=/ccs/home/mei/scratch/TARGET_UCVM_SFCVM/ucvm_install/model/sfcvm/data/sfcvm/
+USGS_SFCVM_v21-1_detailed.h5 --points=./te.in --output=./te.out --points-coordsys=EPSG:4326 --surface=top_sur
+face
+cat te.out
+geomodelgrids_queryelev --models=/ccs/home/mei/scratch/TARGET_UCVM_SFCVM/ucvm_install/model/sfcvm/data/sfcvm/
+USGS_SFCVM_v21-1_detailed.h5 --points=./te.in --output=./te2.out --points-coordsys=EPSG:4326 --surface=topogr
+aphy_bathymetry
+cat te2.out
+
+[mei@login13.frontier southbay-small]$ more te.in
+37.8109 -122.9535
+38.2349  -123.5028
+

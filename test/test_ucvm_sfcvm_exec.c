@@ -31,10 +31,12 @@ int test_ucvm_sfcvm_points_ge()
   /* Save current directory */
   getcwd(currentdir, 1000);
 
+fprintf(stderr," \n WHAT is CWD -- %s\n\n", currentdir);
+
 // ge part
-  sprintf(infile, "%s/%s", currentdir, "./inputs/test_ucvm_sfcvm_ge.txt");
-  sprintf(outfile, "%s/%s", currentdir, "test_ucvm_sfcvm_ge.out");
-  sprintf(reffile, "%s/%s", currentdir, "./ref/test_ucvm_sfcvm_ge.ref");
+  sprintf(infile, "%s/../test/%s", currentdir, "inputs/test_ucvm_sfcvm_ge.txt");
+  sprintf(outfile, "%s/../test/%s", currentdir, "test_ucvm_sfcvm_ge.out");
+  sprintf(reffile, "%s/../test/%s", currentdir, "ref/test_ucvm_sfcvm_ge.ref");
 
   if (test_assert_file_exist(infile) != 0) {
     printf("file:%s not found\n",infile);

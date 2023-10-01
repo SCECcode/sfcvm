@@ -218,11 +218,11 @@ int runSFCVM(const char *bindir, const char *cvmdir,
 int runUCVMSFCVM(const char *bindir, const char *cvmdir, 
 	  const char *infile, const char *outfile, int mode)
 {
-  char currentdir[1280];
   char runpath[1280];
   char flags[1280]="";
 
   sprintf(runpath, "%s/run_ucvm_sfcvm.sh", bindir);
+fprintf(stderr,"HERE... %s\n", runpath);
 
   switch (mode) {
     case MODE_ELEVATION:
@@ -233,9 +233,6 @@ int runUCVMSFCVM(const char *bindir, const char *cvmdir,
       break;
   }
 
-  /* Save current directory */
-  getcwd(currentdir, 1280);
-  
   /* Fork process */
   pid_t pid;
   pid = fork();

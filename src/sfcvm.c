@@ -73,6 +73,7 @@ const size_t sfcvm_spaceDim = 3;
 /*************************************/
 
 int sfcvm_ucvm_debug=1;
+FILE *stderrfp;
 int sfcvm_force_depth=0;
 int sfcvm_zmode=ZMODE_DEPTH; // ZMODE_DEPTH or ZMODE_ELEVATION
 
@@ -86,6 +87,11 @@ int sfcvm_zmode=ZMODE_DEPTH; // ZMODE_DEPTH or ZMODE_ELEVATION
  * @return Success or failure, if initialization was successful.
  */
 int sfcvm_init(const char *dir, const char *label) {
+
+    if(sfcvm_ucvm_debug) {
+      stderrfp = fopen("sfcvm_err_log", "w+");
+      fprintf(stderrfp," ===== START ===== \n");
+    }
     char configbuf[512];
 
     // Initialize variables.
@@ -130,7 +136,7 @@ int sfcvm_init(const char *dir, const char *label) {
            sfcvm_configuration->model_dir,
            sfcvm_configuration->data_files[i]);
 
-       if(sfcvm_ucvm_debug) fprintf(stderr,"using %s\n", sfcvm_filenames[i]);
+       if(sfcvm_ucvm_debug) fprintf(stderrfp,"using %s\n", sfcvm_filenames[i]);
     }
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
@@ -148,7 +154,7 @@ int sfcvm_init(const char *dir, const char *label) {
 
     int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
     assert(!geo_setsquash);
-    int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, -10.0e+3);
+    int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, -5000);
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
     sfcvm_utm_query_object = geomodelgrids_squery_create();
@@ -165,7 +171,7 @@ int sfcvm_init(const char *dir, const char *label) {
 
     int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
     assert(!utm_setsquash);
-    int utm_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, -10.0e+3);
+    int utm_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, -5000);
 
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
@@ -195,7 +201,7 @@ int sfcvm_setparam(int id, int param, ...)
 /*** from UCVM plugin module, this will always be search by depth **/
         case UCVM_COORD_GEO_DEPTH:
           sfcvm_zmode = ZMODE_DEPTH;
-          if(sfcvm_ucvm_debug) fprintf(stderr,"calling sfcvm_setparam >>  depth\n");
+          if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  depth\n");
           break;
 /*** as standalone, this is possible to pick the elevation mode ***/
         case UCVM_COORD_GEO_ELEV:
@@ -204,7 +210,7 @@ even if ucvm_query set elevation mode, still need to run as depth
 from ucvm_query, the supplied depth is already proprocessed with (ucvm_surface - user_elevation)
           sfcvm_zmode = ZMODE_ELEV;
 ****/
-          if(sfcvm_ucvm_debug) fprintf(stderr,"calling sfcvm_setparam >>  elevation\n");
+          if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n");
           break;
         default:
           break;
@@ -252,7 +258,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 
 
       if(sfcvm_ucvm_debug) {
-        fprintf(stderr, "\nsfcvm_query: USING lat(%lf)) lon(%lf) depth(%lf)\n", 
+        fprintf(stderrfp, "\nsfcvm_query: USING lat(%lf)) lon(%lf) depth(%lf)\n", 
 			points[i].latitude, points[i].longitude, points[i].depth);
       }
 
@@ -271,16 +277,16 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       topoBathyElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
 
       if(sfcvm_ucvm_debug) {
-         fprintf(stderr, "sfcvm_query: top surface %f, topoBathy surface %f\n", topElev, topoBathyElev);
+         fprintf(stderrfp, "sfcvm_query: top surface %f, topoBathy surface %f\n", topElev, topoBathyElev);
       }
 
       if( topElev == NO_DATA ) { // outside of the model
-        if(sfcvm_ucvm_debug) { fprintf(stderr,"        OUTside of MODEL by NO_DATA surface..\n"); }
+        if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
         geomodelgrids_cerrorhandler_resetStatus(error_handler);
 	continue;
       }
 
-fprintf(stderr,"HERE.. %lf \n", (topElev- NO_DATA));
+if(sfcvm_ucvm_debug) { fprintf(stderrfp,"HERE.. %lf \n", (topElev- NO_DATA)); }
 
       if (topElev - NO_DATA < 0.01) { 
         entry_elevation= 0.0 ;
@@ -289,14 +295,14 @@ fprintf(stderr,"HERE.. %lf \n", (topElev- NO_DATA));
       }
 
       if(sfcvm_ucvm_debug) {
-        fprintf(stderr," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n\n",
+        fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n\n",
                                                  entry_longitude, entry_latitude, entry_elevation);
       }
 
       int err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
 
       if(sfcvm_ucvm_debug) {
-        fprintf(stderr,"rc from calling squery ==> %d(0 okay, 1 bad)\n", err);
+        fprintf(stderrfp,"rc from calling squery ==> %d(0 okay, 1 bad)\n", err);
       }
       if(!err) {
         data[i].vp=values[0];
@@ -330,6 +336,11 @@ void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
  * @return UCVM_CODE_SUCCESS
  */
 int sfcvm_finalize() {
+
+    if(sfcvm_ucvm_debug) {
+      fclose(stderrfp);
+    }
+
     sfcvm_is_initialized = 0;
 
     _free_sfcvm_configuration(sfcvm_configuration);
@@ -424,7 +435,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
     while (fgets(line_holder, sizeof(line_holder), fp) != NULL) {
         if (line_holder[0] != '#' && line_holder[0] != ' ' && line_holder[0] != '\n') {
             sscanf(line_holder, "%s = %s", key, value);
-            if(sfcvm_ucvm_debug) fprintf(stderr," >> %s", line_holder);
+            if(sfcvm_ucvm_debug) fprintf(stderrfp," >> %s", line_holder);
 
             // Which variable are we editing?
             if (strcmp(key, "utm_zone") == 0) {

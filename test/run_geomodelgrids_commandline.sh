@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# run_geomodelgrids.sh
+# run_geomodelgrids_commandlines.sh
+#  test geomodelgrid's commandlines
 #
 
 
