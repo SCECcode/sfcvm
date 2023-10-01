@@ -4,7 +4,7 @@
 AM_CFLAGS = ${CFLAGS} -I$(prefix)/include
 AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib -lgeomodelgrids
 
-TARGETS = ucvm_sfcvm libsfcvm.a libsfcvm.so
+TARGETS = sfcvm_query libsfcvm.a libsfcvm.so
 
 all: $(TARGETS)
 
@@ -15,6 +15,8 @@ install:
 	cp libsfcvm.so ${prefix}/lib
 	cp libsfcvm.a ${prefix}/lib
 	cp sfcvm.h ${prefix}/include
+	cp sfcvm_query ${bindir}
+	cp run_sfcvm_query.sh ${bindir}
 
 libsfcvm.a: sfcvm_static.o 
 	$(AR) rcs $@ $^
@@ -28,8 +30,11 @@ sfcvm.o: sfcvm.c
 sfcvm_static.o: sfcvm.c
 	$(CC) $(AM_CFLAGS) -o $@ -c $^ 
 
-ucvm_sfcvm : ucvm_sfcvm.o libsfcvm.a
-	$(FC) -o $@ $^ $(AM_LDFLAGS)
+sfcvm_query.o: sfcvm_query.c 
+	$(CC) $(AM_CFLAGS) -o $@ -c $^ 
+
+sfcvm_query : sfcvm_query.o libsfcvm.a
+	$(CC) -o $@ $^ $(AM_LDFLAGS)
 
 clean:
 	rm -rf $(TARGETS)

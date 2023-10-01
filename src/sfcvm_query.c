@@ -1,5 +1,5 @@
 /*
- * @file ucvm_sfcvm.c
+ * @file sfcvm_query.c
  * @brief Bootstraps the test framework for the SFCVM library.
  * @author - SCEC
  * @version 1.0
