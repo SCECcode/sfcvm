@@ -16,7 +16,7 @@
 #include "ucvm_model_dtypes.h"
 #include "sfcvm.h"
 
-int sfcvm_debug=0;
+int sfcvm_debug=1;
 
 int _compare_double(double f1, double f2) {
   double precision = 0.00001;
@@ -62,7 +62,7 @@ int main(int argc, char* const argv[]) {
 
 
         /* Parse options */
-        while ((opt = getopt(argc, argv, "dh")) != -1) {
+        while ((opt = getopt(argc, argv, "dhc")) != -1) {
           switch (opt) {
           case 'c':
             if (strcasecmp(optarg, "gd") == 0) {
