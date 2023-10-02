@@ -262,23 +262,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 			points[i].latitude, points[i].longitude, points[i].depth);
       }
 
-
-      if ((entry_longitude<360.) && (fabs(entry_latitude)<90)) {
-        // GEO;
-        query_object= sfcvm_geo_query_object;
-	error_handler= sfcvm_geo_error_handler;
-        } else { // UTM;
-          query_object= sfcvm_utm_query_object;
-	  error_handler= sfcvm_utm_error_handler;
-      }
-
-      // need to retrieve sfcvm elevation before calling undelying model
-      topElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
-      topoBathyElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
-
-      if(sfcvm_ucvm_debug) {
-         fprintf(stderrfp, "sfcvm_query: top surface %f, topoBathy surface %f\n", topElev, topoBathyElev);
-      }
+      sfcvm_getsurface(entry_longitude, entry_latitude, &topElev, &topoPathyElev);
 
       if( topElev == NO_DATA ) { // outside of the model
         if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
@@ -313,6 +297,30 @@ if(sfcvm_ucvm_debug) { fprintf(stderrfp,"HERE.. %lf \n", (topElev- NO_DATA)); }
       }		
   }
   return UCVM_CODE_SUCCESS;
+}
+
+/**
+ * Queries SFCVM inner for the surface 
+ **/
+void sfcvm_getsurface(double entry_longitude, double entry_latitude, 
+                               double *surface, double *bsurface) {
+
+  void *query_object;
+  if((entry_longitude<360.) && (fabs(entry_latitude)<90)) {
+      // GEO;
+      query_object= sfcvm_geo_query_object;
+      error_handler= sfcvm_geo_error_handler;
+      } else { // UTM;
+          query_object= sfcvm_utm_query_object;
+          error_handler= sfcvm_utm_error_handler;
+  }
+
+  double topElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
+  double topoBathyElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
+
+  *surface=topElev;
+  *bsurface=topoBathyElev;
+  return;
 }
 
 void _free_sfcvm_configuration(sfcvm_configuration_t *config) {

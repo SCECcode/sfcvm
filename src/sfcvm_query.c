@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "ucvm_model_dtypes.h"
 #include "sfcvm.h"
 
 int sfcvm_debug=0;
@@ -28,9 +29,9 @@ int _compare_double(double f1, double f2) {
 
 /* Usage function */
 void usage() {
-  printf("     ucvm_sfcvm - (c) SCEC\n");
+  printf("     sfcvm_query - (c) SCEC\n");
   printf("Extract velocities from a SFCVM\n");
-  printf("\tusage: ucvm_sfcvm [-d][-h] < file.in\n\n");
+  printf("\tusage: sfcvm_query [-c ge/gd][-d][-h] < file.in\n\n");
   printf("Flags:\n");
   printf("\t-d enable debug/verbose mode\n\n");
   printf("\t-h usage\n\n");
@@ -55,6 +56,7 @@ int main(int argc, char* const argv[]) {
 	// Declare the structures.
 	sfcvm_point_t pt;
 	sfcvm_properties_t ret;
+        int zmode=UCVM_COORD_GEO_DEPTH;
         int rc;
         int opt;
 
@@ -62,6 +64,13 @@ int main(int argc, char* const argv[]) {
         /* Parse options */
         while ((opt = getopt(argc, argv, "dh")) != -1) {
           switch (opt) {
+          case 'c':
+            if (strcasecmp(optarg, "gd") == 0) {
+              zmode = UCVM_COORD_GEO_DEPTH;
+            } else if (strcasecmp(optarg, "ge") == 0) {
+              zmode = UCVM_COORD_GEO_ELEV;
+            }
+            break;
           case 'd':
             sfcvm_debug=1;
             break;
@@ -89,7 +98,24 @@ int main(int argc, char* const argv[]) {
         while (fgets(line, 1000, stdin) != NULL) {
            if(line[0]=='#') continue; // comment line
            if (sscanf(line,"%lf %lf %lf",
-               &pt.longitude,&pt.latitude,&pt.depth) == 3) {
+                   &pt.longitude,&pt.latitude,&pt.depth) == 3) {
+
+//  need to convert to depth since geomodelgrid got squashing
+              if(zmode == UCVM_COORD_GEO_ELEV ) {
+                double elev=pt.depth;
+                double surface;
+                double bsurface;
+                
+                sfcvm_getsurface(pt.longitude, pt.latitude, &surface, &bsurface);
+
+                // reset it
+                pt.depth = surface - elev;
+
+                if(sfcvm_debug) {
+                  fprintf(stderr, "  calling _getsurface: surface is %f, initial elevation %f > depth(%f)\n",
+                         surface, elev, pt.depth);
+                }
+              }
 
 	      rc=sfcvm_query(&pt, &ret, 1);
               if(rc == 0) {

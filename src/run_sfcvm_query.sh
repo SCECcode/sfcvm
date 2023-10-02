@@ -5,7 +5,7 @@
 FLAGS=""
 
 # Pass along any arguments to 
-while getopts 'ghz:' OPTION
+while getopts 'c:ghz:' OPTION
 do
   if [ "$OPTARG" != "" ]; then
       FLAGS="${FLAGS} -$OPTION $OPTARG"
@@ -15,6 +15,8 @@ do
 done
 shift $(($OPTIND - 1))
 
+
+echo "FLAGS...", ${FLAGS}
 
 if [ $# -lt 2 ]; then
 	printf "Usage: %s: [options] <infile> <outfile>\n" $(basename $0) >&2    

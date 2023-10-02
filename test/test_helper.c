@@ -221,7 +221,7 @@ int runUCVMSFCVM(const char *bindir, const char *cvmdir,
   char runpath[1280];
   char flags[1280]="";
 
-  sprintf(runpath, "%s/run_ucvm_sfcvm.sh", bindir);
+  sprintf(runpath, "%s/run_sfcvm_query.sh", bindir);
 fprintf(stderr,"HERE... %s\n", runpath);
 
   switch (mode) {
@@ -241,6 +241,7 @@ fprintf(stderr,"HERE... %s\n", runpath);
     return(1);
   } else if (pid == 0) {
     /* Change dir to cvmdir */
+fprintf(stderr," make explicit chdir ..\n");
     if (chdir(bindir) != 0) {
       printf("FAIL: Error changing dir in run_ucvm_sfcvm.sh\n");
       return(1);
