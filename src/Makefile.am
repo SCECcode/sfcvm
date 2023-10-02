@@ -1,7 +1,7 @@
 # Autoconf/automake file
 
 # General compiler/linker flags
-AM_CFLAGS = ${CFLAGS} -I$(prefix)/include
+AM_CFLAGS = ${CFLAGS} -I$(prefix)/include 
 AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib -lgeomodelgrids
 
 TARGETS = sfcvm_query libsfcvm.a libsfcvm.so
