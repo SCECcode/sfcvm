@@ -89,7 +89,7 @@ int sfcvm_zmode=ZMODE_DEPTH; // ZMODE_DEPTH or ZMODE_ELEVATION
 int sfcvm_init(const char *dir, const char *label) {
 
     if(sfcvm_ucvm_debug) {
-      stderrfp = fopen("sfcvm_err_log", "w+");
+      stderrfp = fopen("sfcvm_debug.log", "w+");
       fprintf(stderrfp," ===== START ===== \n");
     }
     char configbuf[512];
@@ -297,12 +297,15 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       int err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
 
       if(sfcvm_ucvm_debug) {
-        fprintf(stderrfp,"rc from calling squery ==> %d(0 okay, 1 bad)\n", err);
+        fprintf(stderrfp,"    rc from calling squery ==> %d(0 okay, 1 bad)\n", err);
       }
       if(!err) {
         data[i].vp=values[0];
         data[i].vs=values[1];
         data[i].rho=values[2];
+        if(sfcvm_ucvm_debug) {
+          fprintf(stderrfp," RESULT from calling squery ==> %f = % f = %f \n\n",values[0], values[1], values[2]);
+        }
         } else { // need to reset the error handler
              geomodelgrids_cerrorhandler_resetStatus(error_handler);
       }		
