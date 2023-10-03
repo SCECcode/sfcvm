@@ -62,7 +62,7 @@ int main(int argc, char* const argv[]) {
 
 
         /* Parse options */
-        while ((opt = getopt(argc, argv, "dhc")) != -1) {
+        while ((opt = getopt(argc, argv, "dhc:")) != -1) {
           switch (opt) {
           case 'c':
             if (strcasecmp(optarg, "gd") == 0) {
@@ -106,13 +106,10 @@ int main(int argc, char* const argv[]) {
                 double surface;
                 void *error_handler;
                 
-                sfcvm_getsurface(pt.longitude, pt.latitude, &surface, &error_handler);
-                if( surface == NO_DATA ) { // outside of the model
-                  if(sfcvm_debug)
-                    { fprintf(stderr,"        OUTside of MODEL by NO_DATA surface..\n"); }
-                  sfcvm_reset_error_handler(error_handler);
+                rc=sfcvm_getsurface(pt.longitude, pt.latitude, &surface);
+                if(rc == 1) {
                   continue;
-                }
+                }			 
 
                 // reset it
                 pt.depth = surface - elev;

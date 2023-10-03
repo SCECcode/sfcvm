@@ -262,7 +262,19 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 			points[i].latitude, points[i].longitude, points[i].depth);
       }
 
-      sfcvm_getsurface(entry_longitude, entry_latitude, &topElev, &error_handler);
+      if((entry_longitude<360.) && (fabs(entry_latitude)<90)) {
+      // GEO;
+        query_object= sfcvm_geo_query_object;
+        error_handler = sfcvm_geo_error_handler;
+        } else { // UTM;
+          query_object= sfcvm_utm_query_object;
+          error_handler= sfcvm_utm_error_handler;
+      }
+
+      int rc=sfcvm_getsurface(entry_longitude, entry_latitude, &topElev);
+      if( rc != 0) {
+        continue;
+      }
 
       if( topElev == NO_DATA ) { // outside of the model
         if(sfcvm_ucvm_debug)
@@ -301,31 +313,31 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 /**
  * Queries SFCVM inner for the surface 
  **/
-void sfcvm_getsurface(double entry_longitude, double entry_latitude, 
-                               double *surface, void **error_handler) {
-
+int sfcvm_getsurface(double entry_longitude, double entry_latitude, 
+                               double *surface) {
   void *query_object;
+  void *error_handler;
+
   if((entry_longitude<360.) && (fabs(entry_latitude)<90)) {
       // GEO;
-      query_object= sfcvm_geo_query_object;
-      *error_handler = sfcvm_geo_error_handler;
-      } else { // UTM;
+        query_object= sfcvm_geo_query_object;
+        error_handler = sfcvm_geo_error_handler;
+        } else { // UTM;
           query_object= sfcvm_utm_query_object;
-          *error_handler= sfcvm_utm_error_handler;
+          error_handler= sfcvm_utm_error_handler;
   }
 
   double topElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
   //double topoBathyElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
+  if( topElev == NO_DATA ) { // outside of the model
+      if(sfcvm_ucvm_debug)
+        { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
+      geomodelgrids_cerrorhandler_resetStatus(error_handler);
+      return 1;
+  }
 
   *surface=topElev;
-  return;
-}
-
-/**
- * Reset the SFCVM internal  error handler 
- **/
-void sfcvm_reset_error_handler(void *error_handler) {
-   geomodelgrids_cerrorhandler_resetStatus(error_handler);
+  return 0;
 }
 
 void _free_sfcvm_configuration(sfcvm_configuration_t *config) {

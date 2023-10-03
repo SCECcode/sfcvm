@@ -139,8 +139,6 @@ int sfcvm_setparam(int, int, ...);
 int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config);
 void sfcvm_print_error(char *err);
 int sfcvm_setzmode(char* z);
-void sfcvm_getsurface(double entry_longitude, double entry_latitude,
-                               double *surface, void **error_handler);
-void sfcvm_reset_error_handler(void *error_handler);
+int sfcvm_getsurface(double entry_longitude, double entry_latitude, double *surface);
 
 #endif
