@@ -12,11 +12,12 @@ install:
 	mkdir -p ${prefix}
 	mkdir -p ${prefix}/lib
 	mkdir -p ${prefix}/include
+	mkdir -p ${prefix}/bin
 	cp libsfcvm.so ${prefix}/lib
 	cp libsfcvm.a ${prefix}/lib
 	cp sfcvm.h ${prefix}/include
-	cp sfcvm_query ${bindir}
-	cp run_sfcvm_query.sh ${bindir}
+	cp sfcvm_query ${prefix}/bin
+	cp run_sfcvm_query.sh ${prefix}/bin
 
 libsfcvm.a: sfcvm_static.o 
 	$(AR) rcs $@ $^
