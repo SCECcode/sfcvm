@@ -84,6 +84,8 @@ int main(int argc, char* const argv[]) {
           }
         }
 
+        if(sfcvm_debug) { sfcvm_setdebug(); }
+
 	// Initialize the model. 
         // try to use Use UCVM_INSTALL_PATH
         char *envstr=getenv("UCVM_INSTALL_PATH");

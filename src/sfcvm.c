@@ -72,7 +72,7 @@ const size_t sfcvm_spaceDim = 3;
 
 /*************************************/
 
-int sfcvm_ucvm_debug=1;
+int sfcvm_ucvm_debug=0;
 FILE *stderrfp;
 int sfcvm_force_depth=0;
 int sfcvm_zmode=ZMODE_DEPTH; // ZMODE_DEPTH or ZMODE_ELEVATION
@@ -342,6 +342,11 @@ int sfcvm_getsurface(double entry_longitude, double entry_latitude,
   *surface=topElev;
   return 0;
 }
+
+void sfcvm_setdebug() {
+   sfcvm_ucvm_debug=1;
+}
+
 
 void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
 

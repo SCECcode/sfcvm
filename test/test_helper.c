@@ -222,7 +222,6 @@ int runUCVMSFCVM(const char *bindir, const char *cvmdir,
   char flags[1280]="";
 
   sprintf(runpath, "%s/run_sfcvm_query.sh", bindir);
-fprintf(stderr,"HERE... %s\n", runpath);
 
   switch (mode) {
     case MODE_ELEVATION:
@@ -232,6 +231,8 @@ fprintf(stderr,"HERE... %s\n", runpath);
       sprintf(flags, "-c gd ");
       break;
   }
+
+  if(debug_mode) { strcat(flags, "-d "); }
 
   /* Fork process */
   pid_t pid;

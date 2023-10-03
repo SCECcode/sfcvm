@@ -137,6 +137,7 @@ int sfcvm_setparam(int, int, ...);
 // Non-UCVM Helper Functions
 /** Reads the configuration file. */
 int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config);
+void sfcvm_setdebug();
 void sfcvm_print_error(char *err);
 int sfcvm_setzmode(char* z);
 int sfcvm_getsurface(double entry_longitude, double entry_latitude, double *surface);
