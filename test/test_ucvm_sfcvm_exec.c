@@ -26,12 +26,10 @@ int test_ucvm_sfcvm_points_ge()
   char reffile[1280];
   char currentdir[1000];
 
-  printf("Test: ucvm_sfcvm validate ge option\n");
+  printf("\nTest: ucvm_sfcvm validate ge option\n");
 
   /* Save current directory */
   getcwd(currentdir, 1000);
-
-fprintf(stderr," \n WHAT is CWD -- %s\n\n", currentdir);
 
 // ge part
   sprintf(infile, "%s/../test/%s", currentdir, "inputs/test_ucvm_sfcvm_ge.txt");
@@ -40,17 +38,20 @@ fprintf(stderr," \n WHAT is CWD -- %s\n\n", currentdir);
 
   if (test_assert_file_exist(infile) != 0) {
     printf("file:%s not found\n",infile);
+    printf("FAIL\n");
     return(1);
   }
 
   if (test_assert_int(runUCVMSFCVM(BIN_DIR, MODEL_DIR, infile, outfile, 
 				MODE_ELEVATION), 0) != 0) {
     printf("ucvm_sfcvm failure\n");
+    printf("FAIL\n");
     return(1);
   }
-
+ 
   /* Perform diff btw outfile and ref */
   if (test_assert_file(outfile, reffile) != 0) {
+    printf("FAIL\n");
     return(1);
   }
 
@@ -67,7 +68,7 @@ int test_ucvm_sfcvm_points_gd()
   char reffile[1280];
   char currentdir[1000];
 
-  printf("Test: ucvm_sfcvm validate gd option\n");
+  printf("\nTest: ucvm_sfcvm validate gd option\n");
 
   /* Save current directory */
   getcwd(currentdir, 1000);
@@ -79,17 +80,20 @@ int test_ucvm_sfcvm_points_gd()
 
   if (test_assert_file_exist(infile) != 0) {
     printf("file:%s not found\n",infile);
+    printf("FAIL\n");
     return(1);
   }
 
   if (test_assert_int(runUCVMSFCVM(BIN_DIR, MODEL_DIR, infile, outfile, 
 				MODE_DEPTH), 0) != 0) {
     printf("ucvm_sfcvm failure\n");
+    printf("FAIL\n");
     return(1);
   }
 
   /* Perform diff btw outfile and ref */
   if (test_assert_file(outfile, reffile) != 0) {
+    printf("FAIL\n");
     return(1);
   }
 

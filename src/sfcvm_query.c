@@ -117,7 +117,7 @@ int main(int argc, char* const argv[]) {
                 pt.depth = surface - elev;
 
                 if(sfcvm_debug) {
-                  fprintf(stderr, "  calling _getsurface: surface is %f, initial elevation %f > depth(%f)\n",
+                  fprintf(stderr, "  calling : surface is %f, initial elevation %f using > depth(%f)\n",
                          surface, elev, pt.depth);
                 }
               }

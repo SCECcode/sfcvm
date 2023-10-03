@@ -11,7 +11,7 @@
 #include "unittest_defs.h"
 #include "test_helper.h"
 
-int debug_mode=1;
+int debug_mode=0;
 sfcvm_surf_t test_surfs[100];
 int test_surfs_cnt=0;
 
@@ -242,7 +242,6 @@ int runUCVMSFCVM(const char *bindir, const char *cvmdir,
     return(1);
   } else if (pid == 0) {
     /* Change dir to cvmdir */
-fprintf(stderr," make explicit chdir ..\n");
     if (chdir(bindir) != 0) {
       printf("FAIL: Error changing dir in run_ucvm_sfcvm.sh\n");
       return(1);
@@ -250,7 +249,7 @@ fprintf(stderr," make explicit chdir ..\n");
 
     if (strlen(flags) == 0) {
       execl(runpath, runpath, infile, outfile, (char *)0);
-    } else {
+      } else {
       execl(runpath, runpath, flags, infile, outfile, (char *)0);
     }
 

@@ -16,8 +16,6 @@ done
 shift $(($OPTIND - 1))
 
 
-echo "FLAGS...", ${FLAGS}
-
 if [ $# -lt 2 ]; then
 	printf "Usage: %s: [options] <infile> <outfile>\n" $(basename $0) >&2    
     	exit 1

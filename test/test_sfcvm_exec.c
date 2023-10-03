@@ -20,7 +20,7 @@
 
 int test_setup()
 {
-  printf("Test: model_init() and model_finalize()\n");
+  printf("\nTest: model_init() and model_finalize()\n");
 
   char *envstr=getenv("UCVM_INSTALL_PATH");
   if(envstr != NULL) {
@@ -41,7 +41,7 @@ int test_setup()
 
 int test_setparam()
 {
-  printf("Test: model_setparam() with depth\n");
+  printf("\nTest: model_setparam() with depth\n");
 
 // Initialize the model, try to use Use UCVM_INSTALL_PATH
   char *envstr=getenv("UCVM_INSTALL_PATH");
@@ -68,7 +68,7 @@ int test_setparam()
 
 int test_query_by_depth()
 {
-  printf("Test: model_query() by depth\n");
+  printf("\nTest: model_query() by depth\n");
 
   sfcvm_point_t pt;
   sfcvm_properties_t expect;
@@ -118,7 +118,7 @@ int test_query_by_depth()
 
 int test_query_by_elevation()
 {
-  printf("Test: model_query() by elevation\n");
+  printf("\nTest: model_query() by elevation\n");
 
   sfcvm_point_t pt;
   sfcvm_properties_t ret;

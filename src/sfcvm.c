@@ -370,9 +370,7 @@ void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
  */
 int sfcvm_finalize() {
 
-    if(sfcvm_ucvm_debug) {
-      fclose(stderrfp);
-    }
+    if(sfcvm_ucvm_debug) { fclose(stderrfp); }
 
     sfcvm_is_initialized = 0;
 
@@ -386,6 +384,9 @@ int sfcvm_finalize() {
 
     geomodelgrids_squery_destroy(&sfcvm_utm_query_object);
     sfcvm_utm_query_object=0;
+
+
+    if(sfcvm_ucvm_debug) { fprintf(stderrfp,"DONE.."); fclose(stderrfp); }
 
     return UCVM_CODE_SUCCESS;
 }

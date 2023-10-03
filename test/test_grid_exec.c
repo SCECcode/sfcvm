@@ -25,7 +25,7 @@ int test_sfcvm_grid_elev()
   char reffile[1280];
   char currentdir[1000];
 
-  printf("Test: model with large grid in elevation mode\n");
+  printf("\nTest: model with large grid in elevation mode\n");
 
   /* Save current directory */
   getcwd(currentdir, 1000);
@@ -62,7 +62,7 @@ int test_sfcvm_grid_depth()
   char reffile[1280];
   char currentdir[1000];
 
-  printf("Test: model with large grid in depth mode\n");
+  printf("\nTest: model with large grid in depth mode\n");
 
   /* Save current directory */
   getcwd(currentdir, 1000);

@@ -89,6 +89,7 @@ int test_assert_file(const char *file1, const char *file2)
     fread(line1, 1, 127, fp1);
     fread(line2, 1, 127, fp2);
     if (test_assert_int(strcmp(line1, line2), 0) != 0) {
+      printf("FAIL: %s and %s are of unequal length\n", file1, file2);
       return(1);
     }
   }
