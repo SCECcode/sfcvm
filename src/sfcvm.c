@@ -331,10 +331,12 @@ int sfcvm_getsurface(double entry_longitude, double entry_latitude,
   }
 
   double topElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
-  //double topoBathyElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
+  double topoBathyElev = geomodelgrids_squery_queryTopoBathyElevation(query_object, entry_latitude, entry_longitude);
+
+  if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: top %f topoBathy %f\n", topElev, topoBathyElev); }
+
   if( topElev == NO_DATA ) { // outside of the model
-      if(sfcvm_ucvm_debug)
-        { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
+      if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
       geomodelgrids_cerrorhandler_resetStatus(error_handler);
       return 1;
   }

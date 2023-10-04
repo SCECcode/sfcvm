@@ -1,4 +1,6 @@
-echo "==== SQUASHING LAND ===="
+
+echo "==== SQUASHING WATER ===="
+
 echo " UCVM surface is : -69 "
 geomodelgrids_queryelev --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --points=./water_latlon.in --output=./water_latlon.out --points-coordsys=EPSG:4326
 more water_latlon.out
@@ -15,8 +17,8 @@ echo "..."
 more water_squash.out
 
 
-echo "====="
-run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
-run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,-100
+#echo "====="
+#run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
+#run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,-100
 
 
