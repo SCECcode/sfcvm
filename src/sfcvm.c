@@ -305,6 +305,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         data[i].rho=values[2];
         if(sfcvm_ucvm_debug) {
           fprintf(stderrfp," RESULT from calling squery ==> %f = % f = %f \n\n",values[0], values[1], values[2]);
+          fprintf(stderr," RESULT from calling squery ==> %f = % f = %f \n\n",values[0], values[1], values[2]);
         }
         } else { // need to reset the error handler
              geomodelgrids_cerrorhandler_resetStatus(error_handler);
