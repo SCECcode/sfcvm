@@ -89,7 +89,7 @@ fi
 CFLAGS="$CFLAGS"
 LDFLAGS="$LDFLAGS"
 
-AC_CONFIG_FILES([Makefile data/Makefile src/Makefile dependencies/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile data/Makefile src/Makefile dependencies/Makefile test/Makefile test_geomodelgrids/Makefile])
 
 AC_OUTPUT
 

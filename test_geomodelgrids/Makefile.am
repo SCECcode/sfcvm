@@ -1,16 +1,10 @@
 # Autoconf/automake file
 
-bin_PROGRAMS = geomodelgrids_query 
+bin_PROGRAMS = geomodelgrids_query geomodelgrids_example
 
 AM_CFLAGS = -DDYNAMIC_LIBRARY -Wall -std=c99
-AM_LDFLAGS = -lm -ldl
+AM_LDFLAGS = -lm -ldl -L$(prefix)/lib -lgeomodelgrids
 AM_CPPFLAGS = -I$(prefix)/include
-
-query_SOURCES = geomodelgrids_query.c
-query_LDFLAGS = -L$(prefix)/lib -lgeomodelgrids
-
-
-run_SOURCES = run_geomodelgrids.c
 
 TARGETS = $(bin_PROGRAMS)
 
@@ -20,9 +14,8 @@ all: $(bin_PROGRAMS)
 # Executables
 ############################################
 
-query_geomodelgrids : $(query_SOURCES)
-	$(CC) -o $@ $^ $(query_LDFLAGS)
-
+geomodelgrids_query : geomodelgrids_query.c
+	$(CC) -o $@ $^ $(AM_LDFLAGS)
 
 clean:
 	rm -rf *~ *.o *.out *.log $(bin_PROGRAMS) 
@@ -30,3 +23,4 @@ clean:
 install:
 	mkdir -p ${prefix}/test_geomodelgrids
 	cp geomodelgrids_query  ${prefix}/test_geomodelgrids
+	cp geomodelgrids_example  ${prefix}/test_geomodelgrids
