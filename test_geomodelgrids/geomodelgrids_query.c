@@ -1,12 +1,11 @@
 /*
   geomodelgrids_query.c 
-  Setup geomodelgrids in squashed mode
   and interactively process query 
 
         format: lat lon elev
 
-  ./geomodelgrids_query -c ge < water_squash.in
-  ./geomodelgrids_query -c ge < land_squash.in
+  ./geomodelgrids_query -s -c ge < water_squash.in
+  ./geomodelgrids_query -s -c ge < land_squash.in
 */
 
 #include "../dependencies/geomodelgrids/libsrc/geomodelgrids/serial/cquery.h"
@@ -24,8 +23,10 @@
 void usage() {
   printf("     geomodelgrids_query - (c) SCEC\n");
   printf("Extract SFCVM velocities via geomodelgrids C api\n");
-  printf("\tusage: geomodelgrids_query [-c ge/gd][-d][-h] < file.in\n\n");
+  printf("\tusage: geomodelgrids_query [-s ][-c ge/gd][-d][-h] < file.in\n\n");
   printf("Flags:\n");
+  printf("\t-c ge|ge  elevation or depth mode\n\n");
+  printf("\t-s squashed mode\n\n");
   printf("\t-d enable debug/verbose mode\n\n");
   printf("\t-h usage\n\n");
   printf("Output format is:\n");
@@ -38,9 +39,11 @@ extern int optind, opterr, optopt;
 
 int main(int argc, char* argv[]) {
 
-    int zmode=0;  //1 for depth, 0 for elevation
+    int zMode=0;  //1 for depth, 0 for elevation
     int geomodelgrids_debug=0;
     int opt;
+    int squashedMode=0;
+    int squashedMin=-5000;
 
     /* Models to query. */
     static const size_t numModels = 1;
@@ -53,14 +56,17 @@ int main(int argc, char* argv[]) {
 
     static const char* const crs = "EPSG:4326";
 
-    while ((opt = getopt(argc, argv, "dhc:")) != -1) {
+    while ((opt = getopt(argc, argv, "dhc:s:")) != -1) {
         switch (opt) {
         case 'c':
           if (strcasecmp(optarg, "gd") == 0) {
-            zmode = 1;
+            zMode = 1;
           } else if (strcasecmp(optarg, "ge") == 0) {
-            zmode = 0;
+            zMode = 0;
           }
+          break;
+        case 's':
+          squashedMode=1;
           break;
         case 'd':
           geomodelgrids_debug=1;
@@ -85,10 +91,12 @@ int main(int argc, char* argv[]) {
 
     geomodelgrids_squery_initialize(handle, filenames, numModels, valueNames, numValues, crs);
 
-    int geo_setsquash=geomodelgrids_squery_setSquashing(handle, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
-    assert(!geo_setsquash);
-    int geo_minquash=geomodelgrids_squery_setSquashMinElev(handle, -5000);
-    assert(!geo_minquash);
+    if(squashedMode) {
+      int geo_setsquash=geomodelgrids_squery_setSquashing(handle, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
+      assert(!geo_setsquash);
+      int geo_minquash=geomodelgrids_squery_setSquashMinElev(handle, squashedMin);
+      assert(!geo_minquash);
+    }
 
 
     char line[1001];
@@ -99,7 +107,7 @@ int main(int argc, char* argv[]) {
         if (sscanf(line,"%lf %lf %lf",
                    &latitude,&longitude,&foo) == 3) {
 
-           if(zmode) {
+           if(zMode) {
               depth=foo;
               elevation= 0 - depth; // down is negative in geomodelgrids
               } else {
