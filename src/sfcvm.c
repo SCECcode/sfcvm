@@ -152,7 +152,8 @@ int sfcvm_init(const char *dir, const char *label) {
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_geo_crs);
     assert(!geo_err);
 
-    int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
+//    int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
+    int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!geo_setsquash);
     int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, -5000);
 
@@ -169,7 +170,8 @@ int sfcvm_init(const char *dir, const char *label) {
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_utm_crs);
     assert(!utm_err);
 
-    int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
+//    int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
+    int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!utm_setsquash);
     int utm_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, -5000);
 
