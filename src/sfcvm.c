@@ -43,6 +43,8 @@ double sfcvm_total_height_m = 0;
 /** The width of this model's region, in meters. */
 double sfcvm_total_width_m = 0;
 
++int sfcvm_plugin=false; // true =1, false=0
+
 
 /* Values and order to be returned in queries.  */
 static const size_t sfcvm_numValues = 3;
@@ -74,7 +76,11 @@ const size_t sfcvm_spaceDim = 3;
 
 int sfcvm_ucvm_debug=0;
 FILE *stderrfp;
+
 int sfcvm_force_depth=0;
+
+
+// set in, sfcvm_setparam(int id, int param, ...)
 int sfcvm_zmode=ZMODE_DEPTH; // ZMODE_DEPTH or ZMODE_ELEVATION
 
 /**
@@ -197,6 +203,11 @@ int sfcvm_setparam(int id, int param, ...)
     case UCVM_MODEL_PARAM_FORCE_DEPTH_ABOVE_SURF:
       sfcvm_force_depth = va_arg(ap, int);
       break;
+    case UCVM_MODEL_PARAM_PLUGIN_MODE:
+      sfcvm_plugin = true;
+      sfcvm_zmode = ZMODE_DEPTH; // even if it were set earlier 
+      break;
+/*** from UCVM plugin module, this will always be search by depth **/
     case UCVM_PARAM_QUERY_MODE:
       zmode = va_arg(ap,int);
       switch (zmode) {
@@ -205,14 +216,12 @@ int sfcvm_setparam(int id, int param, ...)
           sfcvm_zmode = ZMODE_DEPTH;
           if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  depth\n");
           break;
-/*** as standalone, this is possible to pick the elevation mode ***/
+/*** as standalone, it is possible to pick the elevation mode ***/
         case UCVM_COORD_GEO_ELEV:
-/*****
-even if ucvm_query set elevation mode, still need to run as depth
-from ucvm_query, the supplied depth is already proprocessed with (ucvm_surface - user_elevation)
-          sfcvm_zmode = ZMODE_ELEV;
-****/
-          if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n");
+          if( sfcvm_plugin != true) {
+            sfcvm_zmode = ZMODE_ELEVATION;
+            if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n");
+          }
           break;
         default:
           break;
@@ -242,7 +251,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
     double entry_longitude;
     double entry_depth;
     double entry_elevation;
-    double topElev, topoBathyElev;
+    double topoBathyElev;
 
     void *query_object;
     void *error_handler;
@@ -273,19 +282,19 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
           error_handler= sfcvm_utm_error_handler;
       }
 
-      int rc=sfcvm_getsurface(entry_longitude, entry_latitude, &topElev);
+      int rc=sfcvm_getsurface(entry_longitude, entry_latitude, &topoBathyElev);
       if( rc != 0) {
         continue;
       }
 
-      if( topElev == NO_DATA ) { // outside of the model
+      if( topoBathyElev == NO_DATA ) { // outside of the model
         if(sfcvm_ucvm_debug)
           { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
         geomodelgrids_cerrorhandler_resetStatus(error_handler);
 	continue;
       }
 
-      if (topElev - NO_DATA < 0.01) { 
+      if (topoBathyElev - NO_DATA < 0.01) { 
         entry_elevation= 0.0 ;
       } else {
         entry_elevation= 0.0 - points[i].depth;
@@ -338,13 +347,13 @@ int sfcvm_getsurface(double entry_longitude, double entry_latitude,
 
   if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: top %f topoBathy %f\n", topElev, topoBathyElev); }
 
-  if( topElev == NO_DATA ) { // outside of the model
+  if( topoBathyElev == NO_DATA ) { // outside of the model
       if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
       geomodelgrids_cerrorhandler_resetStatus(error_handler);
       return 1;
   }
 
-  *surface=topElev;
+  *surface=topoBathyElev;
   return 0;
 }
 
