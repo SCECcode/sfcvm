@@ -19,10 +19,10 @@ install:
 	cp sfcvm_query ${prefix}/bin
 	cp run_sfcvm_query.sh ${prefix}/bin
 
-libsfcvm.a: sfcvm_static.o 
+libsfcvm.a: sfcvm_static.o cJSON.o 
 	$(AR) rcs $@ $^
 
-libsfcvm.so: sfcvm.o
+libsfcvm.so: sfcvm.o cJSON.o 
 	$(CC) -shared $(AM_CFLAGS) -o libsfcvm.so $^ $(AM_LDFLAGS)
 
 sfcvm.o: sfcvm.c
@@ -37,6 +37,8 @@ sfcvm_query.o: sfcvm_query.c
 sfcvm_query : sfcvm_query.o libsfcvm.a
 	$(CC) -o $@ $^ $(AM_LDFLAGS)
 
+cJSON.o: cJSON.c
+	$(CC) -fPIC -DDYNAMIC_LIBRARY $(AM_CFLAGS) -o $@ -c $^ 
 clean:
 	rm -rf $(TARGETS)
 	rm -rf *.o 

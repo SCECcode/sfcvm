@@ -56,7 +56,7 @@ int main(int argc, char* const argv[]) {
 	// Declare the structures.
 	sfcvm_point_t pt;
 	sfcvm_properties_t ret;
-        int zmode=UCVM_COORD_GEO_DEPTH;
+        int zmode=UCVM_MODEL_COORD_GEO_DEPTH;
         int rc;
         int opt;
 
@@ -66,9 +66,9 @@ int main(int argc, char* const argv[]) {
           switch (opt) {
           case 'c':
             if (strcasecmp(optarg, "gd") == 0) {
-              zmode = UCVM_COORD_GEO_DEPTH;
+              zmode = UCVM_MODEL_COORD_GEO_DEPTH;
             } else if (strcasecmp(optarg, "ge") == 0) {
-              zmode = UCVM_COORD_GEO_ELEV;
+              zmode = UCVM_MODEL_COORD_GEO_ELEV;
             }
             break;
           case 'd':
@@ -103,7 +103,7 @@ int main(int argc, char* const argv[]) {
                    &pt.longitude,&pt.latitude,&pt.depth) == 3) {
 
 //  need to convert to depth since geomodelgrid got squashing
-              if(zmode == UCVM_COORD_GEO_ELEV ) {
+              if(zmode == UCVM_MODEL_COORD_GEO_ELEV ) {
                 double elev=pt.depth;
                 double surface;
                 void *error_handler;

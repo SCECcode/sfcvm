@@ -14,6 +14,7 @@
 
 #include "ucvm_model_dtypes.h"
 #include "sfcvm.h"
+#include "cJSON.h"
 
 #include "geomodelgrids/serial/cquery.h"
 #include "geomodelgrids/utils/cerrorhandler.h"
@@ -43,8 +44,10 @@ double sfcvm_total_height_m = 0;
 /** The width of this model's region, in meters. */
 double sfcvm_total_width_m = 0;
 
-+int sfcvm_plugin=false; // true =1, false=0
+#define sfcvm_true 1
+#define sfcvm_false 0
 
+int sfcvm_plugin=sfcvm_false; 
 
 /* Values and order to be returned in queries.  */
 static const size_t sfcvm_numValues = 3;
@@ -78,10 +81,10 @@ int sfcvm_ucvm_debug=0;
 FILE *stderrfp;
 
 int sfcvm_force_depth=0;
-
+double SFCVM_SquashMinElev=-5000.0;
 
 // set in, sfcvm_setparam(int id, int param, ...)
-int sfcvm_zmode=ZMODE_DEPTH; // ZMODE_DEPTH or ZMODE_ELEVATION
+int sfcvm_zmode=SFCVM_ZMODE_DEPTH; // SFCVM_ZMODE_DEPTH or SFCVM_ZMODE_ELEVATION
 
 /**
  * Initializes the SFCVM plugin model within the UCVM framework. In order to initialize
@@ -109,13 +112,13 @@ int sfcvm_init(const char *dir, const char *label) {
     sprintf(configbuf, "%s/model/%s/data/config", dir, label);
 
     // Read the configuration file.
-    if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_CODE_SUCCESS) {
+    if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_MODEL_CODE_SUCCESS) {
 
            // Try another, when is running in standalone mode..
        sprintf(configbuf, "%s/data/config", dir);
-       if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_CODE_SUCCESS) {
+       if (sfcvm_read_configuration(configbuf, sfcvm_configuration) != UCVM_MODEL_CODE_SUCCESS) {
            sfcvm_print_error("No configuration file was found to read from.");
-           return UCVM_CODE_ERROR;
+           return UCVM_MODEL_CODE_ERROR;
            } else {
            // Set up the data directory.
                sprintf(sfcvm_data_directory, "%s/data/%s", dir, sfcvm_configuration->model_dir);
@@ -161,7 +164,7 @@ int sfcvm_init(const char *dir, const char *label) {
 //    int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
     int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!geo_setsquash);
-    int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, -5000);
+    int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
     sfcvm_utm_query_object = geomodelgrids_squery_create();
@@ -184,7 +187,7 @@ int sfcvm_init(const char *dir, const char *label) {
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
 
-    return UCVM_CODE_SUCCESS;
+    return UCVM_MODEL_CODE_SUCCESS;
 }
 
 /**  
@@ -195,31 +198,36 @@ int sfcvm_init(const char *dir, const char *label) {
 int sfcvm_setparam(int id, int param, ...)
 {
   va_list ap;
+  char *bstr;
   int zmode;
 
   va_start(ap, param);
 
   switch (param) {
+    case UCVM_MODEL_PARAM_CONF_BLOB:
+      bstr = va_arg(ap, char *);
+      _processConfiguration(bstr);
+      break;
     case UCVM_MODEL_PARAM_FORCE_DEPTH_ABOVE_SURF:
       sfcvm_force_depth = va_arg(ap, int);
       break;
     case UCVM_MODEL_PARAM_PLUGIN_MODE:
-      sfcvm_plugin = true;
-      sfcvm_zmode = ZMODE_DEPTH; // even if it were set earlier 
+      sfcvm_plugin = sfcvm_true;
+      sfcvm_zmode = SFCVM_ZMODE_DEPTH; // even if it were set earlier 
       break;
 /*** from UCVM plugin module, this will always be search by depth **/
-    case UCVM_PARAM_QUERY_MODE:
+    case UCVM_MODEL_PARAM_QUERY_MODE:
       zmode = va_arg(ap,int);
       switch (zmode) {
 /*** from UCVM plugin module, this will always be search by depth **/
-        case UCVM_COORD_GEO_DEPTH:
-          sfcvm_zmode = ZMODE_DEPTH;
+        case UCVM_MODEL_COORD_GEO_DEPTH:
+          sfcvm_zmode = SFCVM_ZMODE_DEPTH;
           if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  depth\n");
           break;
 /*** as standalone, it is possible to pick the elevation mode ***/
-        case UCVM_COORD_GEO_ELEV:
-          if( sfcvm_plugin != true) {
-            sfcvm_zmode = ZMODE_ELEVATION;
+        case UCVM_MODEL_COORD_GEO_ELEV:
+          if( sfcvm_plugin == sfcvm_false) {
+            sfcvm_zmode = SFCVM_ZMODE_ELEVATION;
             if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n");
           }
           break;
@@ -229,9 +237,42 @@ int sfcvm_setparam(int id, int param, ...)
        break;
   }
   va_end(ap);
-  return UCVM_CODE_SUCCESS;
+  return UCVM_MODEL_CODE_SUCCESS;
 }
 
+/**
+* Parse the configurations
+*
+*  example:  { 'SQUASH_MIN_ELEV' : -5000 }  
+**/
+int _processConfiguration(char *confstr) {
+
+  cJSON *confjson = cJSON_Parse(confstr);
+  if(confjson == NULL)
+  {
+    const char *eptr = cJSON_GetErrorPtr();
+    if(eptr != NULL) {
+      if(sfcvm_ucvm_debug){
+        fprintf(stderrfp, "Config processing error before: %s\n", eptr);
+      }
+      return UCVM_MODEL_CODE_ERROR;
+    }
+  }
+
+  cJSON *squash_min_elev = cJSON_GetObjectItemCaseSensitive(confjson, "SQUASH_MIN_ELEV");
+  if(cJSON_IsNumber(squash_min_elev)){
+    SFCVM_SquashMinElev=squash_min_elev->valuedouble;
+    if(sfcvm_ucvm_debug){
+        fprintf(stderrfp, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev);
+    }
+    } else {
+      cJSON_Delete(confjson);
+      return UCVM_MODEL_CODE_ERROR;
+  }
+
+  cJSON_Delete(confjson);
+  return UCVM_MODEL_CODE_SUCCESS;
+}
 
 /**
  * Queries SFCVM at the given points and returns the data that it finds.
@@ -239,7 +280,7 @@ int sfcvm_setparam(int id, int param, ...)
  * @param points The points at which the queries will be made.
  * @param data The data that will be returned (Vp, Vs, density, Qs, and/or Qp).
  * @param numpoints The total number of points to query.
- * @return UCVM_CODE_SUCCESS or UCVM_CODE_ERROR.
+ * @return UCVM_MODEL_CODE_SUCCESS or UCVM_MODEL_CODE_ERROR.
  */
 int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) {
 
@@ -322,7 +363,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
              geomodelgrids_cerrorhandler_resetStatus(error_handler);
       }		
   }
-  return UCVM_CODE_SUCCESS;
+  return UCVM_MODEL_CODE_SUCCESS;
 }
 
 /**
@@ -380,7 +421,7 @@ void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
 /**
  * Called when the model is being discarded. Free all variables.
  *
- * @return UCVM_CODE_SUCCESS
+ * @return UCVM_MODEL_CODE_SUCCESS
  */
 int sfcvm_finalize() {
 
@@ -402,7 +443,7 @@ int sfcvm_finalize() {
 
     if(sfcvm_ucvm_debug) { fprintf(stderrfp,"DONE.."); fclose(stderrfp); }
 
-    return UCVM_CODE_SUCCESS;
+    return UCVM_MODEL_CODE_SUCCESS;
 }
 
 /**
@@ -415,7 +456,7 @@ int sfcvm_finalize() {
 int sfcvm_version(char *ver, int len)
 {
   //const char *sfcvm_version_string = "SFCVM";
-  return UCVM_CODE_SUCCESS;
+  return UCVM_MODEL_CODE_SUCCESS;
 }
 
 /**
@@ -429,9 +470,9 @@ int sfcvm_config(char **config, int *sz)
   int len=strlen(sfcvm_config_string);
   if(len > 0) {
     *config=sfcvm_config_string;
-    return UCVM_CODE_SUCCESS;
+    return UCVM_MODEL_CODE_SUCCESS;
   }
-  return UCVM_CODE_ERROR;
+  return UCVM_MODEL_CODE_ERROR;
 }
 
 // skip double-quote
@@ -476,7 +517,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
 
     // If our file pointer is null, an error has occurred. Return fail.
     if (fp == NULL) {
-        return UCVM_CODE_ERROR;
+        return UCVM_MODEL_CODE_ERROR;
     }
 
     // Read the lines in the configuration file.
@@ -514,12 +555,12 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
     // Have we set up all configuration parameters?
     if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
 	    sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");
-	    return UCVM_CODE_ERROR;
+	    return UCVM_MODEL_CODE_ERROR;
     }
 
     fclose(fp);
 
-    return UCVM_CODE_SUCCESS;
+    return UCVM_MODEL_CODE_SUCCESS;
 }
 
 /*

@@ -25,8 +25,11 @@
 	#define M_PI 3.14159265358979323846
 #endif
 
-typedef enum { ZMODE_ELEV = 0, 
-               ZMODE_DEPTH } zmode_t;
+typedef enum { SFCVM_ZMODE_ELEVATION = 0, 
+               SFCVM_ZMODE_DEPTH } zmode_t;
+
+typedef enum { SQUASH_MIN_ELEV = 0 } sfcvm_model_param_t;
+
 
 #define NO_DATA -1.0e+20
 #define SFCVM_CONFIG_MAX 1000
