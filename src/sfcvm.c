@@ -40,9 +40,9 @@ sfcvm_model_t *sfcvm_velocity_model;
 
 /** The height of this model's region, in meters. */
 double sfcvm_total_height_m = 0;
-
 /** The width of this model's region, in meters. */
 double sfcvm_total_width_m = 0;
+/** XXX  The grid height in meters. */
 
 #define sfcvm_true 1
 #define sfcvm_false 0
@@ -152,6 +152,7 @@ int sfcvm_init(const char *dir, const char *label) {
     sfcvm_geo_query_object = geomodelgrids_squery_create();
     assert(sfcvm_geo_query_object);
 
+// GEO
 /** Log warnings and errors to "sfcvm_geo_error.log". **/
     sfcvm_geo_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_geo_query_object);
     assert(sfcvm_geo_error_handler);
@@ -161,11 +162,11 @@ int sfcvm_init(const char *dir, const char *label) {
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_geo_crs);
     assert(!geo_err);
 
-//    int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
     int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!geo_setsquash);
     int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
 
+// UTM
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
     sfcvm_utm_query_object = geomodelgrids_squery_create();
     assert(sfcvm_utm_query_object);
@@ -179,10 +180,11 @@ int sfcvm_init(const char *dir, const char *label) {
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_utm_crs);
     assert(!utm_err);
 
-//    int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
     int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!utm_setsquash);
     int utm_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, -5000);
+
+// query for the grid height XXX
 
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
@@ -243,7 +245,7 @@ int sfcvm_setparam(int id, int param, ...)
 /**
 * Parse the configurations
 *
-*  example:  { 'SQUASH_MIN_ELEV' : -5000 }  
+*  example:  "{'SQUASH_MIN_ELEV':-5000}"
 **/
 int _processConfiguration(char *confstr) {
 

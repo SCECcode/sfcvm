@@ -167,19 +167,19 @@ int runSFCVM(const char *bindir, const char *cvmdir,
     return(1);
   }
 
-  int zmode = UCVM_COORD_GEO_ELEV;
+  int zmode = UCVM_MODEL_COORD_GEO_ELEV;
   switch (mode) {
     case MODE_ELEVATION:
-      zmode = UCVM_COORD_GEO_ELEV;
+      zmode = UCVM_MODEL_COORD_GEO_ELEV;
       break;
     case MODE_DEPTH:
-      zmode = UCVM_COORD_GEO_DEPTH;
+      zmode = UCVM_MODEL_COORD_GEO_DEPTH;
       break;
     case MODE_NONE:
       break; // default
   }
 
-  if (test_assert_int(model_setparam(0, UCVM_PARAM_QUERY_MODE, zmode), 0) != 0) {
+  if (test_assert_int(model_setparam(0, UCVM_MODEL_PARAM_QUERY_MODE, zmode), 0) != 0) {
       return(1);
   }
 
