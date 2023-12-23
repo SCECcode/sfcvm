@@ -40,9 +40,10 @@ sfcvm_model_t *sfcvm_velocity_model;
 
 /** The height of this model's region, in meters. */
 double sfcvm_total_height_m = 0;
-
 /** The width of this model's region, in meters. */
 double sfcvm_total_width_m = 0;
+/** The grid height of the 'top layer'?? , in meters. */
+double sfcvm_grid_height_m = 0;
 
 #define sfcvm_true 1
 #define sfcvm_false 0
@@ -53,7 +54,9 @@ int sfcvm_plugin=sfcvm_false;
 static const size_t sfcvm_numValues = 3;
 static const char* const sfcvm_valueNames[3] = { "Vp", "Vs", "density" };
 
-char* sfcvm_filenames[10];  // max is 10
+// max is 10
+char* sfcvm_filenames[10];  
+char* sfcvm_gridheights[10];  // one per data file in meter 
 int sfcvm_filenames_cnt;
 
 /* Coordinate reference system of points passed to queries.
@@ -77,10 +80,11 @@ const size_t sfcvm_spaceDim = 3;
 
 /*************************************/
 
-int sfcvm_ucvm_debug=0;
+int sfcvm_ucvm_debug=1;
 FILE *stderrfp;
 
 int sfcvm_force_depth=0;
+
 double SFCVM_SquashMinElev=-5000.0;
 
 // set in, sfcvm_setparam(int id, int param, ...)
@@ -136,6 +140,11 @@ int sfcvm_init(const char *dir, const char *label) {
         exit(1);
     }
 
+//
+//  TODO:  not sure if have more than 1 data files, which gridheight should we be using??
+//  need to check the boundary ?? -- actually geomodelgrid should expose API to retrieve that
+//  from the backend
+//
     for(int i=0; i < sfcvm_filenames_cnt; i++) {
        sfcvm_filenames[i]= (char *)calloc(1,
            strlen(dir)+(strlen(sfcvm_configuration->model_dir)*2)+strlen(sfcvm_configuration->data_files[i]) +15);
@@ -146,12 +155,16 @@ int sfcvm_init(const char *dir, const char *label) {
            sfcvm_configuration->data_files[i]);
 
        if(sfcvm_ucvm_debug) fprintf(stderrfp,"using %s\n", sfcvm_filenames[i]);
+       if( sfcvm_configuration->data_labels[i] == "sfcvm") {
+           sfcvm_grid_height_m = sfcvm_configuration->data_gridheights[i];
+       }
     }
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
     sfcvm_geo_query_object = geomodelgrids_squery_create();
     assert(sfcvm_geo_query_object);
 
+// GEO
 /** Log warnings and errors to "sfcvm_geo_error.log". **/
     sfcvm_geo_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_geo_query_object);
     assert(sfcvm_geo_error_handler);
@@ -161,11 +174,11 @@ int sfcvm_init(const char *dir, const char *label) {
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_geo_crs);
     assert(!geo_err);
 
-//    int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
     int geo_setsquash=geomodelgrids_squery_setSquashing(sfcvm_geo_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!geo_setsquash);
-    int geo_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
+    geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
 
+// UTM
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
     sfcvm_utm_query_object = geomodelgrids_squery_create();
     assert(sfcvm_utm_query_object);
@@ -179,15 +192,20 @@ int sfcvm_init(const char *dir, const char *label) {
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_utm_crs);
     assert(!utm_err);
 
-//    int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOP_SURFACE);
     int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!utm_setsquash);
-    int utm_minquash=geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, -5000);
+    geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
 
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
 
     return UCVM_MODEL_CODE_SUCCESS;
+}
+
+void set_setSquashMinElev(double val) {
+    SFCVM_SquashMinElev=val;
+    geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
+    geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
 }
 
 /**  
@@ -206,7 +224,7 @@ int sfcvm_setparam(int id, int param, ...)
   switch (param) {
     case UCVM_MODEL_PARAM_CONF_BLOB:
       bstr = va_arg(ap, char *);
-      _processConfiguration(bstr);
+      _processUCVMConfiguration(bstr);
       break;
     case UCVM_MODEL_PARAM_FORCE_DEPTH_ABOVE_SURF:
       sfcvm_force_depth = va_arg(ap, int);
@@ -243,9 +261,9 @@ int sfcvm_setparam(int id, int param, ...)
 /**
 * Parse the configurations
 *
-*  example:  { 'SQUASH_MIN_ELEV' : -5000 }  
+*  example:  "{'SQUASH_MIN_ELEV':-5000}"
 **/
-int _processConfiguration(char *confstr) {
+int _processUCVMConfiguration(char *confstr) {
 
   cJSON *confjson = cJSON_Parse(confstr);
   if(confjson == NULL)
@@ -258,10 +276,9 @@ int _processConfiguration(char *confstr) {
       return UCVM_MODEL_CODE_ERROR;
     }
   }
-
   cJSON *squash_min_elev = cJSON_GetObjectItemCaseSensitive(confjson, "SQUASH_MIN_ELEV");
   if(cJSON_IsNumber(squash_min_elev)){
-    SFCVM_SquashMinElev=squash_min_elev->valuedouble;
+    set_setSquashMinElev(squash_min_elev->valuedouble);
     if(sfcvm_ucvm_debug){
         fprintf(stderrfp, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev);
     }
@@ -344,6 +361,12 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       if(sfcvm_ucvm_debug) {
         fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n\n",
                                                  entry_longitude, entry_latitude, entry_elevation);
+      }
+
+//XXX
+      if( entry_elevation < 0) {
+            fprintf("stderr,"XXXX(STEP-DOWN) ... under the sea level..", entry_elevation);
+            entry_elevation = entry_elevation - SFCVM_SquashMinElev;
       }
 
       int err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
@@ -499,6 +522,40 @@ char *_search(char *str, char *label, char** vptr) {
     return str;
 }
 
+/**
+* Parse the sfcvm data configurations
+*
+* {"LABEL":"sfcvm","FILE":"USGS_SFCVM_v21-1_detailed.h5","GRIDHEIGHT":25}
+**/
+int _processSFCVMConfiguration(sfcvm_configuration_t *config, char *confstr, idx) {
+
+  cJSON *confjson = cJSON_Parse(confstr);
+  if(confjson == NULL)
+  {
+    const char *eptr = cJSON_GetErrorPtr();
+    if(eptr != NULL) {
+      if(sfcvm_ucvm_debug){
+        fprintf(stderrfp, "Config processing error before: %s\n", eptr);
+      }
+      return UCVM_MODEL_CODE_ERROR;
+    }
+  }
+  cJSON *label = cJSON_GetObjectItemCaseSensitive(confjson, "LABEL");
+  if(cJSON_IsString(label)){
+    config->data_labels[idx]=strdup(label->valuestring);
+  }
+  cJSON *file = cJSON_GetObjectItemCaseSensitive(confjson, "NAME");
+  if(cJSON_IsString(file)){
+    config->data_files[idx]=strdup(file->valuestring);
+  }
+  cJSON *gridheight = cJSON_GetObjectItemCaseSensitive(confjson, "GRIDHEIGHT");
+  if(cJSON_IsNumber(gridheight)){
+    config->data_gridheights[idx]=gridheight->valuedouble;
+  }
+  cJSON_Delete(confjson);
+  return UCVM_MODEL_CODE_SUCCESS;
+}
+
 
 /**
  * Reads the configuration file describing the various properties of SFCVM and populates
@@ -521,6 +578,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
     }
 
     // Read the lines in the configuration file.
+    config->data_cnt=0;
     while (fgets(line_holder, sizeof(line_holder), fp) != NULL) {
         if (line_holder[0] != '#' && line_holder[0] != ' ' && line_holder[0] != '\n') {
             sscanf(line_holder, "%s = %s", key, value);
@@ -531,22 +589,12 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 config->utm_zone = atoi(value);
             } else if (strcmp(key, "model_dir") == 0) {
                 sprintf(config->model_dir, "%s", value);
-            } else if (strcmp(key, "data_files") == 0) {
-                int idx=0;
-                char *p = strchr(line_holder, '=');
-                char *ptr=&line_holder[p-line_holder];
-
-                while (ptr) {
-                    // look for the label
-                    ptr=_search(ptr,"LABEL",&config->data_labels[idx]);
-                    if(ptr == NULL) break;
-                    ptr=_search(ptr,"NAME",&config->data_files[idx]);
-                    if(ptr == NULL) break;
-                    idx=idx+1;
-                    if (*ptr == ']') break;
-                    ptr++;
-                }
-                config->data_cnt=idx;
+            } else if (strcmp(key, "data_file") == 0) {
+                // value is in json format 
+                int rc=_processSFCVMConfiguration(config,value,config->data_cnt);
+                if(rc == UCVM_MODEL_CODE_SUCCESS) {
+                  config->data_cnt++;
+                } 
             }
        }
 

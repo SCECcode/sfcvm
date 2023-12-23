@@ -68,7 +68,8 @@ typedef struct sfcvm_configuration_t {
 
         /* raw model datafile */
         char *data_labels[10];
-        char *data_files[100];
+        char *data_files[10];
+        double data_gridheights[10];
         int data_cnt;
 
 } sfcvm_configuration_t;

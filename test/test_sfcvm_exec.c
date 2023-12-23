@@ -53,8 +53,8 @@ int test_setparam()
     return(1);
   }
 
-  int zmode = UCVM_COORD_GEO_DEPTH;
-  if (test_assert_int(model_setparam(0, UCVM_PARAM_QUERY_MODE, zmode), 0) != 0) {
+  int zmode = UCVM_MODEL_COORD_GEO_DEPTH;
+  if (test_assert_int(model_setparam(0, UCVM_MODEL_PARAM_QUERY_MODE, zmode), 0) != 0) {
       return(1);
   }
 
@@ -84,8 +84,8 @@ int test_query_by_depth()
     return(1);
   }
 
-  int zmode = UCVM_COORD_GEO_DEPTH;
-  if (test_assert_int(model_setparam(0, UCVM_PARAM_QUERY_MODE, zmode), 0) != 0) {
+  int zmode = UCVM_MODEL_COORD_GEO_DEPTH;
+  if (test_assert_int(model_setparam(0, UCVM_MODEL_PARAM_QUERY_MODE, zmode), 0) != 0) {
       return(1);
   }
 
@@ -134,8 +134,8 @@ int test_query_by_elevation()
     return(1);
   }
 
-  int zmode = UCVM_COORD_GEO_ELEV;
-  if (test_assert_int(model_setparam(0, UCVM_PARAM_QUERY_MODE, zmode), 0) != 0) {
+  int zmode = UCVM_MODEL_COORD_GEO_ELEV;
+  if (test_assert_int(model_setparam(0, UCVM_MODEL_PARAM_QUERY_MODE, zmode), 0) != 0) {
     return(1);
   }
 
