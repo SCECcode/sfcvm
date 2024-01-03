@@ -196,6 +196,8 @@ int sfcvm_init(const char *dir, const char *label) {
     assert(!utm_setsquash);
     geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
 
+// query for the grid height XXX
+
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
 
