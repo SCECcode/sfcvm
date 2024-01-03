@@ -365,7 +365,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 
 //XXX
       if( entry_elevation < 0) {
-            fprintf("stderr,"XXXX(STEP-DOWN) ... under the sea level..", entry_elevation);
+            fprintf(stderr,"XXXX(STEP-DOWN) ... under the sea level..%f", entry_elevation);
             entry_elevation = entry_elevation - SFCVM_SquashMinElev;
       }
 
@@ -527,7 +527,7 @@ char *_search(char *str, char *label, char** vptr) {
 *
 * {"LABEL":"sfcvm","FILE":"USGS_SFCVM_v21-1_detailed.h5","GRIDHEIGHT":25}
 **/
-int _processSFCVMConfiguration(sfcvm_configuration_t *config, char *confstr, idx) {
+int _processSFCVMConfiguration(sfcvm_configuration_t *config, char *confstr,int idx) {
 
   cJSON *confjson = cJSON_Parse(confstr);
   if(confjson == NULL)
