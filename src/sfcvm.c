@@ -219,12 +219,21 @@ int sfcvm_setparam(int id, int param, ...)
 {
   va_list ap;
   char *bstr;
+  char *pstr;
+  float pval;
   int zmode;
 
   va_start(ap, param);
 
   switch (param) {
-    case UCVM_MODEL_PARAM_CONF_BLOB:
+    case UCVM_PARAM_MODEL_CONF: // from ucvm.conf
+      pstr = va_arg(ap, char *);
+      pval = va_arg(ap, float);
+      if (strcmp(pstr, "SquashMinElev") == 0) {
+        set_setSquashMinElev(pval);
+      }
+      break;
+    case UCVM_MODEL_PARAM_CONF_BLOB: // from standalone
       bstr = va_arg(ap, char *);
       _processUCVMConfiguration(bstr);
       break;
@@ -235,7 +244,6 @@ int sfcvm_setparam(int id, int param, ...)
       sfcvm_plugin = sfcvm_true;
       sfcvm_zmode = SFCVM_ZMODE_DEPTH; // even if it were set earlier 
       break;
-/*** from UCVM plugin module, this will always be search by depth **/
     case UCVM_MODEL_PARAM_QUERY_MODE:
       zmode = va_arg(ap,int);
       switch (zmode) {
