@@ -155,7 +155,7 @@ int sfcvm_init(const char *dir, const char *label) {
            sfcvm_configuration->data_files[i]);
 
        if(sfcvm_ucvm_debug) fprintf(stderrfp,"using %s\n", sfcvm_filenames[i]);
-       if( sfcvm_configuration->data_labels[i] == "sfcvm") {
+       if( strcmp(sfcvm_configuration->data_labels[i],"sfcvm") == 0) {
            sfcvm_grid_height_m = sfcvm_configuration->data_gridheights[i];
        }
     }
@@ -226,7 +226,7 @@ int sfcvm_setparam(int id, int param, ...)
   va_start(ap, param);
 
   switch (param) {
-    case UCVM_PARAM_MODEL_CONF: // from ucvm.conf
+    case UCVM_MODEL_PARAM_MODEL_CONF: // from ucvm.conf
       pstr = va_arg(ap, char *);
       pval = va_arg(ap, float);
       if (strcmp(pstr, "SquashMinElev") == 0) {
