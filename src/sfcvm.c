@@ -19,6 +19,7 @@
 #include "geomodelgrids/serial/cquery.h"
 #include "geomodelgrids/utils/cerrorhandler.h"
 
+int _processUCVMConfiguration(char *confstr);
 
 /************ Constants and Variables ********/
 /** The version of the model. */
@@ -220,7 +221,7 @@ int sfcvm_setparam(int id, int param, ...)
   va_list ap;
   char *bstr;
   char *pstr;
-  float pval;
+  double pval;
   int zmode;
 
   va_start(ap, param);
@@ -228,7 +229,7 @@ int sfcvm_setparam(int id, int param, ...)
   switch (param) {
     case UCVM_MODEL_PARAM_MODEL_CONF: // from ucvm.conf
       pstr = va_arg(ap, char *);
-      pval = va_arg(ap, float);
+      pval = va_arg(ap, double);
       if (strcmp(pstr, "SquashMinElev") == 0) {
         set_setSquashMinElev(pval);
       }
