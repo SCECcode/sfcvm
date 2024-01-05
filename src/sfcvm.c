@@ -206,6 +206,9 @@ int sfcvm_init(const char *dir, const char *label) {
 }
 
 void set_setSquashMinElev(double val) {
+    if(sfcvm_ucvm_debug) {
+      fprintf(stderrfp,"sfcvm.c: SETTING new squashing min value (%lf)\n",val);
+    }
     SFCVM_SquashMinElev=val;
     geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
     geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);

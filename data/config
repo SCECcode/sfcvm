@@ -5,7 +5,8 @@ utm_zone = 11
 model_dir = sfcvm 
 model_data_path  = https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/models
 
-# max number, 10
+# max number of data files = 10
+# gridheight is in meter
 data_file = { "LABEL" : "sfcvm", "FILE" : "USGS_SFCVM_v21-1_detailed.h5", "GRIDHEIGHT": 25 } 
 
 #data_file = { "LABEL" : "topo", "FILE" : "one-block-topo.h5" }
