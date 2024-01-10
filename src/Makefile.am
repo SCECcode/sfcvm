@@ -17,7 +17,6 @@ install:
 	cp libsfcvm.a ${prefix}/lib
 	cp sfcvm.h ${prefix}/include
 	cp sfcvm_query ${prefix}/bin
-	cp run_sfcvm_query.sh ${prefix}/bin
 
 libsfcvm.a: sfcvm_static.o cJSON.o 
 	$(AR) rcs $@ $^

@@ -16,7 +16,7 @@
 #include "ucvm_model_dtypes.h"
 #include "sfcvm.h"
 
-int sfcvm_debug=0;
+int sfcvm_debug=1;
 
 int _compare_double(double f1, double f2) {
   double precision = 0.00001;
@@ -98,6 +98,9 @@ int main(int argc, char* const argv[]) {
 
         char line[1001];
         while (fgets(line, 1000, stdin) != NULL) {
+
+fprintf(stderr,"LINE: (%s)\n",line);
+
            if(line[0]=='#') continue; // comment line
            if (sscanf(line,"%lf %lf %lf",
                    &pt.longitude,&pt.latitude,&pt.depth) == 3) {
