@@ -8,6 +8,8 @@
  *
  * Delivers San Francisco Community Velocity Model
  *
+ * on mac,
+ * run_ucvm_query.sh -l 37.455000,-121.941000,3000 -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -P sfcvm_param:SquashMinElev,-5000.0
  */
 
 #include <assert.h>
