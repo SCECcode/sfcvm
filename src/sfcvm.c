@@ -591,7 +591,7 @@ void _splitline(char* lptr, char key[], char value[]) {
 
   char *kptr, *vptr;
 
-//  if(strlen(key)!= 0) { key[0]='\0'; }
+  for(int i=0; i<strlen(key); i++) { key[i]='\0'; }
 
   _trimLast(lptr,'\n');
 if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n lptr>> (%s) (%d) \n", lptr, strlen(lptr));
@@ -607,11 +607,11 @@ if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n lptr>> (%s) (%d) \n", lptr, strlen(lpt
 if(sfcvm_ucvm_debug) fprintf(stderrfp," pos>> %d \n", pos);
 if(sfcvm_ucvm_debug) fprintf(stderrfp," before key is >> (%s) %d \n", key, strlen(key));
 
-//  strcpy(key,lptr);
-
-  strncat(key,lptr,pos);
+  strncpy(key,lptr, pos);
+//  key[pos] = '\0';
 
 if(sfcvm_ucvm_debug) fprintf(stderrfp," NEW key is >> (%s) %d (%c)\n", key, strlen(key), key[pos-1]);
+if(sfcvm_ucvm_debug) fprintf(stderrfp," NEXT key is >> (%s) %d (%c)\n", key, strlen(key), key[pos]);
 
   vptr++;
   while( vptr[0] == ' ' ) {
@@ -665,10 +665,6 @@ if(sfcvm_ucvm_debug) fprintf(stderrfp," value  is: (%s)\n", value);
                   config->data_cnt++;
                 } 
             }
-
-            // clear key
-            strcpy(key,"KKK");
-            strcpy(value,"VVV");
        }
 
     }
