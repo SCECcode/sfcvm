@@ -1,6 +1,8 @@
-run_ucvm_query.sh  -m 1d -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
+rm -rf sfcvm_debug.log		sfcvm_geo_error.log	sfcvm_utm_error.log
+#run_ucvm_query.sh  -m 1d -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
 run_ucvm_query.sh  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
-run_ucvm_query.sh  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,-100
+#run_ucvm_query.sh  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,-100
+more sfcvm_debug.log 
 
 
 

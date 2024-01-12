@@ -81,6 +81,10 @@ void* sfcvm_utm_error_handler=0;
 
 const size_t sfcvm_spaceDim = 3;
 
+/* Whitespace characters */
+const char *WHITESPACE = " \t\n";
+
+
 /*************************************/
 
 int sfcvm_ucvm_debug=1;
@@ -287,7 +291,7 @@ int _processUCVMConfiguration(char *confstr) {
     const char *eptr = cJSON_GetErrorPtr();
     if(eptr != NULL) {
       if(sfcvm_ucvm_debug){
-        fprintf(stderrfp, "Config processing error before: %s\n", eptr);
+        fprintf(stderrfp, "Config processing error before 1: (%s)(%s)\n", eptr,confstr);
       }
       return UCVM_MODEL_CODE_ERROR;
     }
@@ -551,7 +555,7 @@ int _processSFCVMConfiguration(sfcvm_configuration_t *config, char *confstr,int 
     const char *eptr = cJSON_GetErrorPtr();
     if(eptr != NULL) {
       if(sfcvm_ucvm_debug){
-        fprintf(stderrfp, "Config processing error before: %s\n", eptr);
+        fprintf(stderrfp, "Config processing error before 2: (%s)(%s)\n", eptr,confstr);
       }
       return UCVM_MODEL_CODE_ERROR;
     }
@@ -572,6 +576,50 @@ int _processSFCVMConfiguration(sfcvm_configuration_t *config, char *confstr,int 
   return UCVM_MODEL_CODE_SUCCESS;
 }
 
+
+void _trimLast(char *str, char m) {
+  int i;
+  i = strlen(str);
+  while (str[i-1] == m) {
+    str[i-1] = '\0';
+    i = i - 1;
+  }
+  return;
+}
+
+void _splitline(char* lptr, char key[], char value[]) {
+
+  char *kptr, *vptr;
+
+//  if(strlen(key)!= 0) { key[0]='\0'; }
+
+  _trimLast(lptr,'\n');
+if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n lptr>> (%s) (%d) \n", lptr, strlen(lptr));
+
+  vptr = strchr(lptr, '=');
+  int pos=vptr - lptr;
+
+// skip space in key token from the back
+  while ( lptr[pos-1]  == ' ') {
+    pos--;
+  }
+
+if(sfcvm_ucvm_debug) fprintf(stderrfp," pos>> %d \n", pos);
+if(sfcvm_ucvm_debug) fprintf(stderrfp," before key is >> (%s) %d \n", key, strlen(key));
+
+//  strcpy(key,lptr);
+
+  strncat(key,lptr,pos);
+
+if(sfcvm_ucvm_debug) fprintf(stderrfp," NEW key is >> (%s) %d (%c)\n", key, strlen(key), key[pos-1]);
+
+  vptr++;
+  while( vptr[0] == ' ' ) {
+    vptr++;
+  }
+  strcpy(value,vptr);
+  _trimLast(value,' ');
+} 
 
 /**
  * Reads the configuration file describing the various properties of SFCVM and populates
@@ -597,8 +645,11 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
     config->data_cnt=0;
     while (fgets(line_holder, sizeof(line_holder), fp) != NULL) {
         if (line_holder[0] != '#' && line_holder[0] != ' ' && line_holder[0] != '\n') {
-            sscanf(line_holder, "%s = %s", key, value);
-            if(sfcvm_ucvm_debug) fprintf(stderrfp," >> %s", line_holder);
+           
+            _splitline(line_holder, key, value);
+
+//if(sfcvm_ucvm_debug) fprintf(stderrfp," input line >> (%s) \n", line_holder);
+//if(sfcvm_ucvm_debug) fprintf(stderrfp," key >> (%s), value >> (%s) \n", key, value);
 
             // Which variable are we editing?
             if (strcmp(key, "utm_zone") == 0) {
@@ -607,11 +658,17 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 sprintf(config->model_dir, "%s", value);
             } else if (strcmp(key, "data_file") == 0) {
                 // value is in json format 
+if(sfcvm_ucvm_debug) fprintf(stderrfp," value  is: (%s)\n", value);
+
                 int rc=_processSFCVMConfiguration(config,value,config->data_cnt);
                 if(rc == UCVM_MODEL_CODE_SUCCESS) {
                   config->data_cnt++;
                 } 
             }
+
+            // clear key
+            strcpy(key,"KKK");
+            strcpy(value,"VVV");
        }
 
     }
