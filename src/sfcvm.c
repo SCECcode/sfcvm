@@ -364,6 +364,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       if( rc != 0) {
         continue;
       }
+      fprintf(stderrfp,"\n with topoBathyElev : %f\n", topoBathyElev);
 
       if( topoBathyElev == NO_DATA ) { // outside of the model
         if(sfcvm_ucvm_debug)
@@ -372,21 +373,22 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 	continue;
       }
 
+      // Since it is squashed.. the surface has moved to sea level
       if (topoBathyElev - NO_DATA < 0.01) { 
         entry_elevation= 0.0 ;
-      } else {
-        entry_elevation= 0.0 - points[i].depth;
+        } else {
+          entry_elevation= 0.0 - points[i].depth;
+      }
+
+      if(topoBathyElev < 0) { // under the sea level
+            fprintf(stderrfp,"\n(STEP-DOWN) with gridheight ... under the sea level..from : %f\n", entry_elevation);
+            entry_elevation = entry_elevation - sfcvm_grid_height_m;
+            fprintf(stderrfp,"(STEP-DOWN)                                            to : %f\n", entry_elevation);
       }
 
       if(sfcvm_ucvm_debug) {
-        fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n\n",
+        fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n",
                                                  entry_longitude, entry_latitude, entry_elevation);
-      }
-
-//XXX
-      if( entry_elevation < 0) {
-            fprintf(stderr,"XXXX(STEP-DOWN) ... under the sea level..%f", entry_elevation);
-            entry_elevation = entry_elevation - SFCVM_SquashMinElev;
       }
 
       int err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
@@ -399,8 +401,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         data[i].vs=values[1];
         data[i].rho=values[2];
         if(sfcvm_ucvm_debug) {
-          fprintf(stderrfp," RESULT from calling squery ==> %f = % f = %f \n\n",values[0], values[1], values[2]);
-          fprintf(stderr," RESULT from calling squery ==> %f = % f = %f \n\n",values[0], values[1], values[2]);
+          fprintf(stderrfp," RESULT from calling squery ==> vp(%f) vs(%f) rho(%f) \n\n",values[0], values[1], values[2]);
         }
         } else { // need to reset the error handler
              geomodelgrids_cerrorhandler_resetStatus(error_handler);
@@ -445,7 +446,6 @@ void sfcvm_setdebug() {
    sfcvm_ucvm_debug=1;
 }
 
-
 void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
 
   for(int i=0; i< config->data_cnt; i++) {
@@ -457,7 +457,7 @@ void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
 
 void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
     for(int i=0; i< config->data_cnt; i++) {
-       fprintf(stderr,"    <%d>  %s: %s\n",i,config->data_labels[i], config->data_files[i]);
+       fprintf(stderrfp,"    <%d>  %s: %s\n",i,config->data_labels[i], config->data_files[i]);
     }
 }
 
@@ -564,7 +564,7 @@ int _processSFCVMConfiguration(sfcvm_configuration_t *config, char *confstr,int 
   if(cJSON_IsString(label)){
     config->data_labels[idx]=strdup(label->valuestring);
   }
-  cJSON *file = cJSON_GetObjectItemCaseSensitive(confjson, "NAME");
+  cJSON *file = cJSON_GetObjectItemCaseSensitive(confjson, "FILE");
   if(cJSON_IsString(file)){
     config->data_files[idx]=strdup(file->valuestring);
   }
@@ -594,8 +594,6 @@ void _splitline(char* lptr, char key[], char value[]) {
   for(int i=0; i<strlen(key); i++) { key[i]='\0'; }
 
   _trimLast(lptr,'\n');
-if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n lptr>> (%s) (%d) \n", lptr, strlen(lptr));
-
   vptr = strchr(lptr, '=');
   int pos=vptr - lptr;
 
@@ -604,14 +602,8 @@ if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n lptr>> (%s) (%d) \n", lptr, strlen(lpt
     pos--;
   }
 
-if(sfcvm_ucvm_debug) fprintf(stderrfp," pos>> %d \n", pos);
-if(sfcvm_ucvm_debug) fprintf(stderrfp," before key is >> (%s) %d \n", key, strlen(key));
-
   strncpy(key,lptr, pos);
-//  key[pos] = '\0';
-
-if(sfcvm_ucvm_debug) fprintf(stderrfp," NEW key is >> (%s) %d (%c)\n", key, strlen(key), key[pos-1]);
-if(sfcvm_ucvm_debug) fprintf(stderrfp," NEXT key is >> (%s) %d (%c)\n", key, strlen(key), key[pos]);
+  key[pos] = '\0';
 
   vptr++;
   while( vptr[0] == ' ' ) {

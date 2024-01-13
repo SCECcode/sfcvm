@@ -1,8 +1,23 @@
 rm -rf sfcvm_debug.log		sfcvm_geo_error.log	sfcvm_utm_error.log
-#run_ucvm_query.sh  -m 1d -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
+## water,-67.93093
+run_ucvm_query.sh  -m 1d -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
 run_ucvm_query.sh  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,0
-#run_ucvm_query.sh  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,-100
-more sfcvm_debug.log 
+run_ucvm_query.sh  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,100
+run_ucvm_query.sh  -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.8109,-122.9535,1000
 
+## land,369.146042
+#run_ucvm_query.sh -m 1d -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 38.809,-122.4965,0
+#run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 38.809,-122.4965,0
+#run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 38.809,-122.4965,100
+#run_ucvm_query.sh -m sfcvm  -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 38.809,-122.4965,1000
+
+## land,274.086434
+#run_ucvm_query.sh -m 1d -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.6893,-121.6626,0
+#run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.6893,-121.6626,0
+#run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.6893,-121.6626,100
+#run_ucvm_query.sh -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -l 37.6893,-121.6626,1000
+
+
+##run_ucvm_query.sh -l 37.455000,-121.941000,3000 -m sfcvm -f $UCVM_INSTALL_PATH/conf/ucvm.conf -P sfcvm_param:SquashMinElev,-5000.0
 
 

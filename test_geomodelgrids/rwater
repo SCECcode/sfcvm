@@ -16,7 +16,7 @@ more water_nosquash.out
 
 echo "----"
 echo "INPUT:"
-geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --points=./water_squash.in --output=./water_squash.out --values=Vp,Vs,density --squash-min-elev=-5000.0 --squash-surface=top_surface
+geomodelgrids_query --models=${UCVM_INSTALL_PATH}/model/sfcvm/data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 --points=./water_squash.in --output=./water_squash.out --values=Vp,Vs,density --squash-min-elev=-5000.0 --squash-surface=topography_bathymetry
 more water_squash.in
 echo "..."
 more water_squash.out
