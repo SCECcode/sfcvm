@@ -87,7 +87,7 @@ const char *WHITESPACE = " \t\n";
 
 /*************************************/
 
-int sfcvm_ucvm_debug=1;
+int sfcvm_ucvm_debug=0;
 FILE *stderrfp;
 
 int sfcvm_force_depth=0;
@@ -212,9 +212,7 @@ int sfcvm_init(const char *dir, const char *label) {
 }
 
 void set_setSquashMinElev(double val) {
-    if(sfcvm_ucvm_debug) {
-      fprintf(stderrfp,"sfcvm.c: SETTING new squashing min value (%lf)\n",val);
-    }
+    if(sfcvm_ucvm_debug) { fprintf(stderrfp,"sfcvm.c: SETTING new squashing min value (%lf)\n",val); }
     SFCVM_SquashMinElev=val;
     geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
     geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
@@ -266,7 +264,7 @@ int sfcvm_setparam(int id, int param, ...)
         case UCVM_MODEL_COORD_GEO_ELEV:
           if( sfcvm_plugin == sfcvm_false) {
             sfcvm_zmode = SFCVM_ZMODE_ELEVATION;
-            if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n");
+            if(sfcvm_ucvm_debug) { fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n"); }
           }
           break;
         default:
@@ -290,18 +288,14 @@ int _processUCVMConfiguration(char *confstr) {
   {
     const char *eptr = cJSON_GetErrorPtr();
     if(eptr != NULL) {
-      if(sfcvm_ucvm_debug){
-        fprintf(stderrfp, "Config processing error before 1: (%s)(%s)\n", eptr,confstr);
-      }
+      if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Config processing error before 1: (%s)(%s)\n", eptr,confstr); }
       return UCVM_MODEL_CODE_ERROR;
     }
   }
   cJSON *squash_min_elev = cJSON_GetObjectItemCaseSensitive(confjson, "SQUASH_MIN_ELEV");
   if(cJSON_IsNumber(squash_min_elev)){
     set_setSquashMinElev(squash_min_elev->valuedouble);
-    if(sfcvm_ucvm_debug){
-        fprintf(stderrfp, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev);
-    }
+    if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev); }
     } else {
       cJSON_Delete(confjson);
       return UCVM_MODEL_CODE_ERROR;
@@ -346,10 +340,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       entry_latitude=points[i].latitude;
 
 
-      if(sfcvm_ucvm_debug) {
-        fprintf(stderrfp, "\nsfcvm_query: USING lat(%lf)) lon(%lf) depth(%lf)\n", 
-			points[i].latitude, points[i].longitude, points[i].depth);
-      }
+      if(sfcvm_ucvm_debug) { fprintf(stderrfp, "\nsfcvm_query: USING lat(%lf)) lon(%lf) depth(%lf)\n", points[i].latitude, points[i].longitude, points[i].depth); }
 
       if((entry_longitude<360.) && (fabs(entry_latitude)<90)) {
       // GEO;
@@ -363,12 +354,12 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       int rc=sfcvm_getsurface(entry_longitude, entry_latitude, &topoBathyElev);
       if( rc != 0) {
         continue;
-      }
-      fprintf(stderrfp,"\n with topoBathyElev : %f\n", topoBathyElev);
+      } 
+
+      if(sfcvm_ucvm_debug) { fprintf(stderrfp,"\n with topoBathyElev : %f\n", topoBathyElev); }
 
       if( topoBathyElev == NO_DATA ) { // outside of the model
-        if(sfcvm_ucvm_debug)
-          { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
+        if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
         geomodelgrids_cerrorhandler_resetStatus(error_handler);
 	continue;
       }
@@ -381,28 +372,21 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       }
 
       if(topoBathyElev < 0) { // under the sea level
-            fprintf(stderrfp,"\n(STEP-DOWN) with gridheight ... under the sea level..from : %f\n", entry_elevation);
+          if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN) with gridheight ... under the sea level..from : %f\n", entry_elevation);
             entry_elevation = entry_elevation - sfcvm_grid_height_m;
-            fprintf(stderrfp,"(STEP-DOWN)                                            to : %f\n", entry_elevation);
+          if(sfcvm_ucvm_debug) { fprintf(stderrfp,"(STEP-DOWN)                                            to : %f\n", entry_elevation); }
       }
 
-      if(sfcvm_ucvm_debug) {
-        fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n",
-                                                 entry_longitude, entry_latitude, entry_elevation);
-      }
+      if(sfcvm_ucvm_debug) { fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n", entry_longitude, entry_latitude, entry_elevation); }
 
       int err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
 
-      if(sfcvm_ucvm_debug) {
-        fprintf(stderrfp,"    rc from calling squery ==> %d(0 okay, 1 bad)\n", err);
-      }
+      if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    rc from calling squery ==> %d(0 okay, 1 bad)\n", err); }
       if(!err) {
         data[i].vp=values[0];
         data[i].vs=values[1];
         data[i].rho=values[2];
-        if(sfcvm_ucvm_debug) {
-          fprintf(stderrfp," RESULT from calling squery ==> vp(%f) vs(%f) rho(%f) \n\n",values[0], values[1], values[2]);
-        }
+        if(sfcvm_ucvm_debug) { fprintf(stderrfp," RESULT from calling squery ==> vp(%f) vs(%f) rho(%f) \n\n",values[0], values[1], values[2]); }
         } else { // need to reset the error handler
              geomodelgrids_cerrorhandler_resetStatus(error_handler);
       }		
@@ -457,7 +441,7 @@ void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
 
 void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
     for(int i=0; i< config->data_cnt; i++) {
-       fprintf(stderrfp,"    <%d>  %s: %s\n",i,config->data_labels[i], config->data_files[i]);
+       if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    <%d>  %s: %s\n",i,config->data_labels[i], config->data_files[i]); }
     }
 }
 
@@ -554,9 +538,7 @@ int _processSFCVMConfiguration(sfcvm_configuration_t *config, char *confstr,int 
   {
     const char *eptr = cJSON_GetErrorPtr();
     if(eptr != NULL) {
-      if(sfcvm_ucvm_debug){
-        fprintf(stderrfp, "Config processing error before 2: (%s)(%s)\n", eptr,confstr);
-      }
+      if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Config processing error before 2: (%s)(%s)\n", eptr,confstr); }
       return UCVM_MODEL_CODE_ERROR;
     }
   }
@@ -650,7 +632,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 sprintf(config->model_dir, "%s", value);
             } else if (strcmp(key, "data_file") == 0) {
                 // value is in json format 
-if(sfcvm_ucvm_debug) fprintf(stderrfp," value  is: (%s)\n", value);
+                if(sfcvm_ucvm_debug) fprintf(stderrfp," value  is: (%s)\n", value);
 
                 int rc=_processSFCVMConfiguration(config,value,config->data_cnt);
                 if(rc == UCVM_MODEL_CODE_SUCCESS) {
