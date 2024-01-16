@@ -175,7 +175,7 @@ int sfcvm_init(const char *dir, const char *label) {
 /** Log warnings and errors to "sfcvm_geo_error.log". **/
     sfcvm_geo_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_geo_query_object);
     assert(sfcvm_geo_error_handler);
-    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_geo_error_handler, "sfcvm_geo_error.log");
+//    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_geo_error_handler, "sfcvm_geo_error.log");
 
     int geo_err=geomodelgrids_squery_initialize(sfcvm_geo_query_object, sfcvm_filenames,
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_geo_crs);
@@ -193,7 +193,7 @@ int sfcvm_init(const char *dir, const char *label) {
 /** Log warnings and errors to "sfcvm_utm_error.log". **/
     sfcvm_utm_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_utm_query_object);
     assert(sfcvm_utm_error_handler);
-    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_utm_error_handler, "sfcvm_utm_error.log");
+//    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_utm_error_handler, "sfcvm_utm_error.log");
 
     int utm_err=geomodelgrids_squery_initialize(sfcvm_utm_query_object, sfcvm_filenames,
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_utm_crs);
