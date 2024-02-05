@@ -45,8 +45,9 @@ sfcvm_model_t *sfcvm_velocity_model;
 double sfcvm_total_height_m = 0;
 /** The width of this model's region, in meters. */
 double sfcvm_total_width_m = 0;
-/** The grid height of the 'top layer'?? , in meters. */
+/** The grid height of the detail and regional sections, in meters. */
 double sfcvm_grid_height_m = 0;
+double sfcvm_grid_height_regional_m = 0;
 
 #define sfcvm_true 1
 #define sfcvm_false 0
@@ -66,7 +67,7 @@ int sfcvm_filenames_cnt;
 *
 * The string can be in the form of EPSG:ABCD, WKT, or Proj
 * parameters. In this case, we will specify the coordinates in
-* latitude, longitude, elevation in the WGS84 horizontal
+i latitude, longitude, elevation in the WGS84 horizontal
 * datum. The elevation is with respect to the WGS84 ellipsoid.
 */
 // NAD83/UTM Zone 10N
@@ -165,6 +166,9 @@ int sfcvm_init(const char *dir, const char *label) {
        if( strcmp(sfcvm_configuration->data_labels[i],"sfcvm") == 0) {
            sfcvm_grid_height_m = sfcvm_configuration->data_gridheights[i];
        }
+       if( strcmp(sfcvm_configuration->data_labels[i],"regional") == 0) {
+           sfcvm_grid_height_regional_m = sfcvm_configuration->data_gridheights[i];
+       }
     }
 
 /* Create and initialize serial query object using the parameters  stored in local variables.  */
@@ -202,8 +206,6 @@ int sfcvm_init(const char *dir, const char *label) {
     int utm_setsquash=geomodelgrids_squery_setSquashing(sfcvm_utm_query_object, GEOMODELGRIDS_SQUASH_TOPOGRAPHY_BATHYMETRY);
     assert(!utm_setsquash);
     geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
-
-// query for the grid height XXX
 
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
@@ -371,17 +373,33 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
           entry_elevation= 0.0 - points[i].depth;
       }
 
+// under the sea level
+      int err;
       if(topoBathyElev < 0) { // under the sea level
-          if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN) with gridheight ... under the sea level..from : %f\n", entry_elevation);
-            entry_elevation = entry_elevation - sfcvm_grid_height_m;
-          if(sfcvm_ucvm_debug) { fprintf(stderrfp,"(STEP-DOWN)                                            to : %f\n", entry_elevation); }
+			     
+// try first without step down
+          err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
+          if(err) {
+// try with first step down -- detail version
+            double n_entry_elevation = entry_elevation - sfcvm_grid_height_m;
+            if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 1) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
+            err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
+// try with second step down -- detail version
+            if(err) {
+                double n_entry_elevation = entry_elevation - sfcvm_grid_height_regional_m;
+                if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 2) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
+                err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
+            }
+          }
+
+          } else {
+// above the sea level
+
+              if(sfcvm_ucvm_debug) { fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n", entry_longitude, entry_latitude, entry_elevation); }
+              err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
+              if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    rc from calling squery ==> %d(0 okay, 1 bad)\n", err); }
       }
 
-      if(sfcvm_ucvm_debug) { fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n", entry_longitude, entry_latitude, entry_elevation); }
-
-      int err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
-
-      if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    rc from calling squery ==> %d(0 okay, 1 bad)\n", err); }
       if(!err) {
         data[i].vp=values[0];
         data[i].vs=values[1];

@@ -7,11 +7,20 @@ model_data_path = https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/models
 
 # max number of data files = 10
 # gridheight is in meter
+
+## Origin: x=99286.2, y=149980.5
+## Number of points: x=1351, y=2851
+## Resolution: x=100, y=100
+## <coordinates>-121.8935,36.3472,0 -120.6609,37.0508,0 -122.5484,39.1414,0 -123.7983,38.4183,0 -121.8935,36.3472,0</coordinates>
 data_file = { "LABEL" : "sfcvm", "FILE" : "USGS_SFCVM_v21-1_detailed.h5", "GRIDHEIGHT": 25 }
+## Origin: x=97513.8, y=4562.2
+## Number of points: x=651, y=1291
+## Resolution: x=500, y=500
+## <coordinates>-121.8935,36.3472,0 -120.6609,37.0508,0 -122.5484,39.1414,0 -123.7983,38.4183,0 -121.8935,36.3472,0</coordinates>
+data_file = { "LABEL" : "regional", "FILE" : "USGS_SFCVM_v21-0_regional.h5", "GRIDHEIGHT": 125 }
 
 #data_file = { "LABEL" : "topo", "FILE" : "one-block-topo.h5" }
 #data_file = { "LABEL" : "flat", "FILE" : "three-blocks-flat.h5" }
-
 ## origin: ??
 ## upper: ??
 

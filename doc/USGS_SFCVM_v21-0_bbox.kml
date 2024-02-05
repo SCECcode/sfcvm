@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2">
+  <Document>
+    <name>USGS San Francisco Bay region 3D seismic velocity model v21.0.0</name>
+    <open>1</open>
+    <description>Bounding boxes for the detailed and regional domains.</description>
+    <StyleMap id="box_style">
+      <Pair>
+	<key>normal</key>
+	<styleUrl>#box_normal</styleUrl>
+      </Pair>
+      <Pair>
+	<key>highlight</key>
+	<styleUrl>#box_highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="box_normal">
+      <LineStyle>
+	<color>ffff00ff</color>
+	<width>2</width>
+      </LineStyle>
+    </Style>
+    <Style id="box_highlight">
+      <LineStyle>
+	<color>ffff00ff</color>
+	<width>4</width>
+      </LineStyle>
+    </Style>
+    <Placemark>
+      <name>Detailed Model</name>
+      <styleUrl>#box_style</styleUrl>
+      <LineString>
+	<tessellate>1</tessellate>
+	<coordinates>-121.8935,36.3472,0 -120.6609,37.0508,0 -122.5484,39.1414,0 -123.7983,38.4183,0 -121.8935,36.3472,0</coordinates>
+      </LineString>
+    </Placemark>
+    <Placemark>
+      <name>Regional Model</name>
+      <styleUrl>#box_style</styleUrl>
+      <LineString>
+	<tessellate>1</tessellate>
+	<coordinates>-121.9309,35.0364,0 -118.9787,36.7104,0 -123.2775,41.4586,0 -126.3216,39.6755,0 -121.9309,35.0364,0</coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>
