@@ -1,5 +1,5 @@
 # UTM Zone
-utm_zone=11
+utm_zone=10
 
 # Model directory
 model_dir = sfcvm 
