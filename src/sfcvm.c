@@ -55,8 +55,9 @@ double sfcvm_grid_height_regional_m = 0;
 int sfcvm_plugin=sfcvm_false; 
 
 /* Values and order to be returned in queries.  */
-static const size_t sfcvm_numValues = 3;
-static const char* const sfcvm_valueNames[3] = { "Vp", "Vs", "density" };
+static const size_t sfcvm_numValues = 4;
+static const char* const sfcvm_valueNames[4] = { "Vp", "Vs", "density","zone_id" };
+static const char* const sfcvm_gabbro = "San Leandro G";
 
 // max is 10
 char* sfcvm_filenames[10];  
@@ -89,6 +90,8 @@ const char *WHITESPACE = " \t\n";
 /*************************************/
 
 int sfcvm_ucvm_debug=0;
+int sfcvm_gabbro_count=0;
+
 FILE *stderrfp;
 
 int sfcvm_force_depth=0;
@@ -210,6 +213,8 @@ int sfcvm_init(const char *dir, const char *label) {
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
 
+    sfcvm_gabbro_count=0;
+
     return UCVM_MODEL_CODE_SUCCESS;
 }
 
@@ -307,6 +312,30 @@ int _processUCVMConfiguration(char *confstr) {
   return UCVM_MODEL_CODE_SUCCESS;
 }
 
+
+/**
+Nakata and Pitarka gabbro correction in the SFCVM
+to modify the near-surface gabbro regions in the East Bay and Gilroy 
+  depth= -(elev)
+  Vp 4.2 to 5.7 km/s from depth=0 to 7.75km
+  Vs = 0.7858 - 1.2344*Vp + 0.7949*Vp^2 - 0.1238*Vp^3 + 0.0064*Vp^4
+  density = 2.4372 + 0.0761*Vp
+**/
+static const size_t sfcvm_gabbro_vp_delta = ((5700.0- 4200.0) / 7750.0);
+int _gabbro(double elevation, sfcvm_properties_t *data) {
+  double depth= 0.0 - elevation;
+  if(depth < 7750.0) {
+    double vp= (depth) * sfcvm_gabbro_vp_delta; 
+    data->vp= vp;
+    data->vs= 0.7858 - (1.2344 * vp) + (0.7949 * vp * vp) 
+          - (0.1238 * vp * vp * vp) + (0.0064 * vp * vp * vp * vp);
+    data->rho = 2.4372 + (0.0761 * vp);
+    sfcvm_gabbro_count++;
+  }
+  return UCVM_MODEL_CODE_SUCCESS;
+}
+
+
 /**
  * Queries SFCVM at the given points and returns the data that it finds.
  *
@@ -394,7 +423,6 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 
           } else {
 // above the sea level
-
               if(sfcvm_ucvm_debug) { fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n", entry_longitude, entry_latitude, entry_elevation); }
               err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
               if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    rc from calling squery ==> %d(0 okay, 1 bad)\n", err); }
@@ -404,6 +432,14 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         data[i].vp=values[0];
         data[i].vs=values[1];
         data[i].rho=values[2];
+
+// Nakata and Pitarka gabbro correction, near-surface gabbro regions in the East Bay and Gilroy in the SFCVM
+
+        if(strcmp(values[3],sfcvm_gabbro) == 0) {
+fprintf(stderrfp," FOUND gabbro : at %lf %lf\n", entry_longitude, entry_latitude);
+           _gabbro(entry_elevation,&data[i]);
+        }
+
         if(sfcvm_ucvm_debug) { fprintf(stderrfp," RESULT from calling squery ==> vp(%f) vs(%f) rho(%f) \n\n",values[0], values[1], values[2]); }
         } else { // need to reset the error handler
              geomodelgrids_cerrorhandler_resetStatus(error_handler);
