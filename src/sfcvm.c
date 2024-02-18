@@ -61,7 +61,9 @@ int sfcvm_plugin=sfcvm_false;
 static const size_t sfcvm_numValues = 4;
 static const char* const sfcvm_valueNames[4] = { "Vp", "Vs", "density","zone_id" };
 // "San Leandro G";
-int sfcvm_gabbro_type_id = 4; 
+int sfcvm_san_leandro_gabbro_type_id = 4; 
+// "Logan G"
+int sfcvm_logan_gabbro_type_id = 5; 
 
 // max is 10
 char* sfcvm_filenames[10];  
@@ -444,7 +446,9 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 // Nakata and Pitarka gabbro correction, near-surface gabbro regions in the East Bay and Gilroy in the SFCVM
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"At b %lf %lf type(%lf) -- vp(%lf) vs(%lf)\n", entry_longitude, entry_latitude, values[3], values[0], values[1]); }
 
-        if( ROUND_2_INT(values[3]) == sfcvm_gabbro_type_id) {
+        int typeid= ROUND_2_INT(values[3]);
+        if( (typeid == sfcvm_san_leandro_gabbro_type_id) ||
+               (typeid == sfcvm_logan_gabbro_type_id )) {
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: found: at %lf %lf\n", entry_longitude, entry_latitude); }
            _gabbro(entry_elevation,&data[i]);
         } else {
