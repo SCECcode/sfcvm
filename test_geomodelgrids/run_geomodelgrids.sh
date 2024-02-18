@@ -41,6 +41,13 @@ cat <<  U &> geomodelgrids_utm.in
 625627.70 4138083.87 -3000.00
 U
 
+cat <<  U &> gabbro.in
+37.7679 -122.1461 0.00
+37.7679 -122.1461 -500.00
+37.7679 -122.1461 -5000.00
+37.7709 -122.1431 -3000.00
+U
+
 
 echo "====== squash:none "
 ${TOP_LOC}/geomodelgrids_query \
@@ -74,6 +81,15 @@ ${TOP_LOC}/geomodelgrids_query \
 --output=./geomodelgrids_utm.out \
 --values=Vs,Vp,density \
 --points-coordsys=EPSG:26910 
+
+echo "====== on gabbro "
+${TOP_LOC}/geomodelgrids_query \
+--models=../data/sfcvm/USGS_SFCVM_v21-1_detailed.h5 \
+--points=./geomodelgrids_gabbro.in \
+--output=./geomodelgrids_gabbro.out \
+--values=Vs,Vp,density,zone_id \
+--points-coordsys=EPSG:26910 
+
 
 echo "====== info "
 ${TOP_LOC}/geomodelgrids_info \

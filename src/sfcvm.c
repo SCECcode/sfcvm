@@ -21,9 +21,12 @@
 #include "geomodelgrids/serial/cquery.h"
 #include "geomodelgrids/utils/cerrorhandler.h"
 
+#define ROUND_2_INT(f) ((int)(f >= 0.0 ? (f + 0.5) : (f - 0.5)))
+
 int _processUCVMConfiguration(char *confstr);
 
 /************ Constants and Variables ********/
+
 /** The version of the model. */
 const char *sfcvm_version_string = "SFCVM";
 
@@ -57,7 +60,8 @@ int sfcvm_plugin=sfcvm_false;
 /* Values and order to be returned in queries.  */
 static const size_t sfcvm_numValues = 4;
 static const char* const sfcvm_valueNames[4] = { "Vp", "Vs", "density","zone_id" };
-static const char* const sfcvm_gabbro = "San Leandro G";
+// "San Leandro G";
+int sfcvm_gabbro_type_id = 4; 
 
 // max is 10
 char* sfcvm_filenames[10];  
@@ -90,7 +94,9 @@ const char *WHITESPACE = " \t\n";
 /*************************************/
 
 int sfcvm_ucvm_debug=0;
+int sfcvm_gabbro_on=1;
 int sfcvm_gabbro_count=0;
+
 
 FILE *stderrfp;
 
@@ -165,7 +171,7 @@ int sfcvm_init(const char *dir, const char *label) {
            sfcvm_configuration->model_dir,
            sfcvm_configuration->data_files[i]);
 
-       if(sfcvm_ucvm_debug) fprintf(stderrfp,"using %s\n", sfcvm_filenames[i]);
+//if(sfcvm_ucvm_debug) fprintf(stderrfp,"using %s\n", sfcvm_filenames[i]);
        if( strcmp(sfcvm_configuration->data_labels[i],"sfcvm") == 0) {
            sfcvm_grid_height_m = sfcvm_configuration->data_gridheights[i];
        }
@@ -219,7 +225,7 @@ int sfcvm_init(const char *dir, const char *label) {
 }
 
 void set_setSquashMinElev(double val) {
-    if(sfcvm_ucvm_debug) { fprintf(stderrfp,"sfcvm.c: SETTING new squashing min value (%lf)\n",val); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"sfcvm.c: SETTING new squashing min value (%lf)\n",val); }
     SFCVM_SquashMinElev=val;
     geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
     geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
@@ -265,13 +271,13 @@ int sfcvm_setparam(int id, int param, ...)
 /*** from UCVM plugin module, this will always be search by depth **/
         case UCVM_MODEL_COORD_GEO_DEPTH:
           sfcvm_zmode = SFCVM_ZMODE_DEPTH;
-          if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  depth\n");
+//if(sfcvm_ucvm_debug) fprintf(stderrfp,"calling sfcvm_setparam >>  depth\n");
           break;
 /*** as standalone, it is possible to pick the elevation mode ***/
         case UCVM_MODEL_COORD_GEO_ELEV:
           if( sfcvm_plugin == sfcvm_false) {
             sfcvm_zmode = SFCVM_ZMODE_ELEVATION;
-            if(sfcvm_ucvm_debug) { fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n"); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"calling sfcvm_setparam >>  elevation\n"); }
           }
           break;
         default:
@@ -295,14 +301,14 @@ int _processUCVMConfiguration(char *confstr) {
   {
     const char *eptr = cJSON_GetErrorPtr();
     if(eptr != NULL) {
-      if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Config processing error before 1: (%s)(%s)\n", eptr,confstr); }
+//if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Config processing error before 1: (%s)(%s)\n", eptr,confstr); }
       return UCVM_MODEL_CODE_ERROR;
     }
   }
   cJSON *squash_min_elev = cJSON_GetObjectItemCaseSensitive(confjson, "SQUASH_MIN_ELEV");
   if(cJSON_IsNumber(squash_min_elev)){
     set_setSquashMinElev(squash_min_elev->valuedouble);
-    if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev); }
+//if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev); }
     } else {
       cJSON_Delete(confjson);
       return UCVM_MODEL_CODE_ERROR;
@@ -321,15 +327,18 @@ to modify the near-surface gabbro regions in the East Bay and Gilroy
   Vs = 0.7858 - 1.2344*Vp + 0.7949*Vp^2 - 0.1238*Vp^3 + 0.0064*Vp^4
   density = 2.4372 + 0.0761*Vp
 **/
-static const size_t sfcvm_gabbro_vp_delta = ((5700.0- 4200.0) / 7750.0);
+static const size_t sfcvm_gabbro_vp_delta = ((5.7- 4.2) / 7750.0);
 int _gabbro(double elevation, sfcvm_properties_t *data) {
   double depth= 0.0 - elevation;
   if(depth < 7750.0) {
-    double vp= (depth) * sfcvm_gabbro_vp_delta; 
-    data->vp= vp;
-    data->vs= 0.7858 - (1.2344 * vp) + (0.7949 * vp * vp) 
-          - (0.1238 * vp * vp * vp) + (0.0064 * vp * vp * vp * vp);
-    data->rho = 2.4372 + (0.0761 * vp);
+    double vp = 4.2 + (depth) * sfcvm_gabbro_vp_delta; 
+    double vs = 0.7858 - (1.2344 * vp) + (0.7949 * vp * vp) - (0.1238 * vp * vp * vp) + (0.0064 * vp * vp * vp * vp);
+    double rho = 2.4372 + (0.0761 * vp);
+    if(sfcvm_gabbro_on) {
+      data->vp= vp * 1000;
+      data->vs= vs * 1000;
+      data->rho = rho * 1000;
+    }
     sfcvm_gabbro_count++;
   }
   return UCVM_MODEL_CODE_SUCCESS;
@@ -371,7 +380,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
       entry_latitude=points[i].latitude;
 
 
-      if(sfcvm_ucvm_debug) { fprintf(stderrfp, "\nsfcvm_query: USING lat(%lf)) lon(%lf) depth(%lf)\n", points[i].latitude, points[i].longitude, points[i].depth); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp, "\nsfcvm_query: USING lat(%lf)) lon(%lf) depth(%lf)\n", points[i].latitude, points[i].longitude, points[i].depth); }
 
       if((entry_longitude<360.) && (fabs(entry_latitude)<90)) {
       // GEO;
@@ -387,10 +396,10 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         continue;
       } 
 
-      if(sfcvm_ucvm_debug) { fprintf(stderrfp,"\n with topoBathyElev : %f\n", topoBathyElev); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"\n with topoBathyElev : %f\n", topoBathyElev); }
 
       if( topoBathyElev == NO_DATA ) { // outside of the model
-        if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
         geomodelgrids_cerrorhandler_resetStatus(error_handler);
 	continue;
       }
@@ -411,21 +420,20 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
           if(err) {
 // try with first step down -- detail version
             double n_entry_elevation = entry_elevation - sfcvm_grid_height_m;
-            if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 1) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
+//if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 1) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
             err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
 // try with second step down -- detail version
             if(err) {
                 double n_entry_elevation = entry_elevation - sfcvm_grid_height_regional_m;
-                if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 2) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
+//if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 2) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
                 err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
             }
           }
 
           } else {
 // above the sea level
-              if(sfcvm_ucvm_debug) { fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n", entry_longitude, entry_latitude, entry_elevation); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp," **** Calling squery with..lon(%f) lat(%f) elevation(%f) \n", entry_longitude, entry_latitude, entry_elevation); }
               err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
-              if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    rc from calling squery ==> %d(0 okay, 1 bad)\n", err); }
       }
 
       if(!err) {
@@ -434,13 +442,18 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         data[i].rho=values[2];
 
 // Nakata and Pitarka gabbro correction, near-surface gabbro regions in the East Bay and Gilroy in the SFCVM
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"At b %lf %lf type(%lf) -- vp(%lf) vs(%lf)\n", entry_longitude, entry_latitude, values[3], values[0], values[1]); }
 
-        if(strcmp(values[3],sfcvm_gabbro) == 0) {
-fprintf(stderrfp," FOUND gabbro : at %lf %lf\n", entry_longitude, entry_latitude);
+        if( ROUND_2_INT(values[3]) == sfcvm_gabbro_type_id) {
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: found: at %lf %lf\n", entry_longitude, entry_latitude); }
            _gabbro(entry_elevation,&data[i]);
+        } else {
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: no: at %lf %lf %lf\n", entry_longitude, entry_latitude, values[3]); }
         }
 
-        if(sfcvm_ucvm_debug) { fprintf(stderrfp," RESULT from calling squery ==> vp(%f) vs(%f) rho(%f) \n\n",values[0], values[1], values[2]); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"  At %lf %lf type(%lf) -- vp(%lf)vs(%lf)\n", entry_longitude, entry_latitude, values[3], data[i].vp, data[i].vs); }
+
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp," RESULT from calling squery ==> vp(%f) vs(%f) rho(%f) \n\n",values[0], values[1], values[2]); }
         } else { // need to reset the error handler
              geomodelgrids_cerrorhandler_resetStatus(error_handler);
       }		
@@ -468,10 +481,10 @@ int sfcvm_getsurface(double entry_longitude, double entry_latitude,
   double topElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
   double topoBathyElev = geomodelgrids_squery_queryTopoBathyElevation(query_object, entry_latitude, entry_longitude);
 
-  if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: top %f topoBathy %f\n", topElev, topoBathyElev); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: top %f topoBathy %f\n", topElev, topoBathyElev); }
 
   if( topoBathyElev == NO_DATA ) { // outside of the model
-      if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NO_DATA surface..\n"); }
       geomodelgrids_cerrorhandler_resetStatus(error_handler);
       return 1;
   }
@@ -506,8 +519,6 @@ void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
  */
 int sfcvm_finalize() {
 
-    if(sfcvm_ucvm_debug) { fclose(stderrfp); }
-
     sfcvm_is_initialized = 0;
 
     _free_sfcvm_configuration(sfcvm_configuration);
@@ -521,8 +532,8 @@ int sfcvm_finalize() {
     geomodelgrids_squery_destroy(&sfcvm_utm_query_object);
     sfcvm_utm_query_object=0;
 
-
-    if(sfcvm_ucvm_debug) { fprintf(stderrfp,"DONE.."); fclose(stderrfp); }
+    if(sfcvm_ucvm_debug) { fprintf(stderrfp,"DONE: total gabbro count >>%d\n", sfcvm_gabbro_count);}
+    if(sfcvm_ucvm_debug) { fclose(stderrfp); }
 
     return UCVM_MODEL_CODE_SUCCESS;
 }
@@ -686,7 +697,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 sprintf(config->model_dir, "%s", value);
             } else if (strcmp(key, "data_file") == 0) {
                 // value is in json format 
-                if(sfcvm_ucvm_debug) fprintf(stderrfp," value  is: (%s)\n", value);
+//if(sfcvm_ucvm_debug) fprintf(stderrfp," value  is: (%s)\n", value);
 
                 int rc=_processSFCVMConfiguration(config,value,config->data_cnt);
                 if(rc == UCVM_MODEL_CODE_SUCCESS) {
@@ -696,7 +707,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
        }
 
     }
-    if(sfcvm_ucvm_debug) _dump_sfcvm_configuration(config);
+//if(sfcvm_ucvm_debug) _dump_sfcvm_configuration(config);
     // Have we set up all configuration parameters?
     if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
 	    sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");
