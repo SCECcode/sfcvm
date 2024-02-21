@@ -329,10 +329,13 @@ to modify the near-surface gabbro regions in the East Bay and Gilroy
   Vs = 0.7858 - 1.2344*Vp + 0.7949*Vp^2 - 0.1238*Vp^3 + 0.0064*Vp^4
   density = 2.4372 + 0.0761*Vp
 **/
-static const size_t sfcvm_gabbro_vp_delta = ((5.7- 4.2) / 7750.0);
+static const double sfcvm_gabbro_vp_delta = ((5.7- 4.2) / 7.75);
 int _gabbro(double elevation, sfcvm_properties_t *data) {
-  double depth= 0.0 - elevation;
-  if(depth < 7750.0) {
+  double depth= (elevation == 0.0) ? 0.0 : ((0.0 - elevation)/1000); // turn into km
+								     //
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp, "\ndelta: %lf, diff\n", sfcvm_gabbro_vp_delta, (depth) * sfcvm_gabbro_vp_delta); }
+
+  if(depth < 7.750) {
     double vp = 4.2 + (depth) * sfcvm_gabbro_vp_delta; 
     double vs = 0.7858 - (1.2344 * vp) + (0.7949 * vp * vp) - (0.1238 * vp * vp * vp) + (0.0064 * vp * vp * vp * vp);
     double rho = 2.4372 + (0.0761 * vp);
