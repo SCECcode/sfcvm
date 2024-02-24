@@ -422,13 +422,13 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 			     
 // try first without step down
           err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
-          if(err) {
+	  if(err || values[0]<0  || values[1]<0 ) {
 // try with first step down -- detail version
             double n_entry_elevation = entry_elevation - sfcvm_grid_height_m;
 //if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 1) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
             err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
 // try with second step down -- detail version
-            if(err) {
+	    if(err || values[0]<0  || values[1]<0 ) {
                 double n_entry_elevation = entry_elevation - sfcvm_grid_height_regional_m;
 //if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 2) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
                 err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
