@@ -98,6 +98,11 @@ const char *WHITESPACE = " \t\n";
 int sfcvm_ucvm_debug=0;
 int sfcvm_gabbro_on=1;
 int sfcvm_gabbro_count=0;
+int sfcvm_query_count=0; // total number of query location
+int sfcvm_water_count=0; // total number of water location
+int sfcvm_water_step_count=0; // total number of water location that needed to step down
+int sfcvm_water_loop_count=0; // total number of water location that needed loops for more step downs
+int sfcvm_max_water_loops=0;   // max number of loops needed to find valid data
 
 
 FILE *stderrfp;
@@ -221,7 +226,12 @@ int sfcvm_init(const char *dir, const char *label) {
     // Let everyone know that we are initialized and ready for business.
     sfcvm_is_initialized = 1;
 
+    sfcvm_query_count=0;
     sfcvm_gabbro_count=0;
+    sfcvm_water_count=0;
+    sfcvm_water_step_count=0;
+    sfcvm_water_loop_count=0;
+    sfcvm_max_water_loops=0;
 
     return UCVM_MODEL_CODE_SUCCESS;
 }
@@ -374,7 +384,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
     void *error_handler;
 
     for(int i=0; i<numpoints; i++) {
-
+      sfcvm_query_count++;
       data[i].vp=-1;
       data[i].vs=-1;
       data[i].rho=-1;
@@ -419,10 +429,11 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 // under the sea level
       int err;
       if(topoBathyElev < 0) { // under the sea level
-			     
+	  sfcvm_water_count++;     
 // try first without step down
           err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
 	  if(err || values[0]<0  || values[1]<0 ) {
+            sfcvm_water_step_count++;
 // try with first step down -- detail version
             double n_entry_elevation = entry_elevation - sfcvm_grid_height_m;
 //if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 1) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
@@ -432,7 +443,26 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
                 double n_entry_elevation = entry_elevation - sfcvm_grid_height_regional_m;
 //if(sfcvm_ucvm_debug) fprintf(stderrfp,"\n(STEP-DOWN 2) with gridheight ... under the sea level..from : %f\n", n_entry_elevation);
                 err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
+	        if(err || values[0]<0  || values[1]<0 ) {
+// XXX loop till find a okay result.. 25, 125, at most (20x25)
+                  sfcvm_water_loop_count++;
+                  int step_cnt=1;
+                  while(1) {
+                    double nn_entry_elevation = entry_elevation - sfcvm_grid_height_regional_m - (sfcvm_grid_height_m * step_cnt);
+                    err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, nn_entry_elevation);
+		    if(step_cnt > sfcvm_max_water_loops) {
+                      sfcvm_max_water_loops=step_cnt;
+                    }
+		    if( (values[0]> 0 && values[1]>0) || step_cnt > 100) {
+                      break;
+                    }
+		    step_cnt++;
+//if(step_cnt > 100 && sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: still bad, found: at %lf %lf (step_cnt %d)\n", entry_longitude, entry_latitude, step_cnt); }
+                  }
+                }
+
             }
+
           }
 
           } else {
@@ -452,7 +482,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         int typeid= ROUND_2_INT(values[3]);
         if( (typeid == sfcvm_san_leandro_gabbro_type_id) ||
                (typeid == sfcvm_logan_gabbro_type_id )) {
-//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: found: at %lf %lf\n", entry_longitude, entry_latitude); }
+if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: found: at %lf %lf\n", entry_longitude, entry_latitude); }
            _gabbro(entry_elevation,&data[i]);
         } else {
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: no: at %lf %lf %lf\n", entry_longitude, entry_latitude, values[3]); }
@@ -539,8 +569,16 @@ int sfcvm_finalize() {
     geomodelgrids_squery_destroy(&sfcvm_utm_query_object);
     sfcvm_utm_query_object=0;
 
-    if(sfcvm_ucvm_debug) { fprintf(stderrfp,"DONE: total gabbro count >>%d\n", sfcvm_gabbro_count);}
-    if(sfcvm_ucvm_debug) { fclose(stderrfp); }
+    if(sfcvm_ucvm_debug) { 
+     fprintf(stderrfp,"DONE:\n"); 
+     fprintf(stderrfp,"    total query count=(%d)\n",sfcvm_query_count);
+     fprintf(stderrfp,"    total gabbro count=(%d)\n",sfcvm_gabbro_count);
+     fprintf(stderrfp,"    total water count=(%d)\n",sfcvm_water_count);
+     fprintf(stderrfp,"    total water step count=(%d)\n",sfcvm_water_step_count);
+     fprintf(stderrfp,"    total water loop count=(%d)\n",sfcvm_water_loop_count);
+     fprintf(stderrfp,"    max water loops =(%d)\n",sfcvm_max_water_loops);
+     fclose(stderrfp);
+    }
 
     return UCVM_MODEL_CODE_SUCCESS;
 }
