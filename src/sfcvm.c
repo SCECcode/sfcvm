@@ -99,18 +99,18 @@ int sfcvm_ucvm_debug=0;
 int sfcvm_gabbro_on=1;
 int sfcvm_gabbro_count=0;
 int sfcvm_query_count=0; // total number of query location
+			 //
 int sfcvm_water_count=0; // total number of water location
 int sfcvm_water_step_count=0; // total number of water location that needed to step down
-int sfcvm_water_2step_count=0; // total number of water location that needed to 2 step down
-int sfcvm_water_loop_count=0; // total number of water location that needed loops for more step downs
-int sfcvm_max_water_loops=0;   // max number of loops needed to find valid data
+int sfcvm_water_2step_count=0; // total number of water location that needed to step down
+int sfcvm_water_max_step=0;   // max number of loops needed to find valid data
 
 
 FILE *stderrfp;
 
 int sfcvm_force_depth=0;
 
-double SFCVM_SquashMinElev=-5000.0;
+double SFCVM_SquashMinElev=-45000.0;
 
 // set in, sfcvm_setparam(int id, int param, ...)
 int sfcvm_zmode=SFCVM_ZMODE_DEPTH; // SFCVM_ZMODE_DEPTH or SFCVM_ZMODE_ELEVATION
@@ -229,11 +229,12 @@ int sfcvm_init(const char *dir, const char *label) {
 
     sfcvm_query_count=0;
     sfcvm_gabbro_count=0;
+    sfcvm_query_count=0;
+
     sfcvm_water_count=0;
     sfcvm_water_step_count=0;
     sfcvm_water_2step_count=0;
-    sfcvm_water_loop_count=0;
-    sfcvm_max_water_loops=0;
+    sfcvm_water_max_step=0;
 
     return UCVM_MODEL_CODE_SUCCESS;
 }
@@ -306,7 +307,7 @@ int sfcvm_setparam(int id, int param, ...)
 /**
 * Parse the configurations
 *
-*  example:  "{'SQUASH_MIN_ELEV':-5000}"
+*  example:  "{'SQUASH_MIN_ELEV':-45000}"
 **/
 int _processUCVMConfiguration(char *confstr) {
 
@@ -362,10 +363,6 @@ int _gabbro(double elevation, sfcvm_properties_t *data) {
 }
 
 /** 
-  step down for water
-
-       double gridcell= 125.0;
-       double groundElev = -3993.2749422271368;
        double squashMinElev = -5000.0;
 
 //       double zsquash= groundElev - gridcell;
@@ -376,8 +373,7 @@ int _gabbro(double elevation, sfcvm_properties_t *data) {
        // elev = 4239.941478
        first valid value is returned in squashing mode
 **/
-double _water(double gridcell, double groundElev, double squashMinElev) {
-       double zsquash= groundElev - gridcell;
+double _water(double zsquash, double groundElev, double squashMinElev) {
        double elev= (zsquash - groundElev) * squashMinElev / (squashMinElev - groundElev);
        return elev;
 }
@@ -448,62 +444,76 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
           entry_elevation= 0.0 - points[i].depth;
       }
 
-// under the sea level
       int err;
       double detail_offset, regional_offset;
+
       if(topoBathyElev < 0) { // under the sea level
 	  sfcvm_water_count++;     
+
 // try first without step down
           err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
 
 	  if(err || values[0]<0  || values[1]<0 ) {
-            sfcvm_water_step_count++;
-// try with first step down -- detail version
-//            double n_entry_elevation = entry_elevation - sfcvm_grid_height_m;
+// try with first step down -- detailed area
+	    sfcvm_water_step_count++;     
 
-            detail_offset = _water(sfcvm_grid_height_m, topoBathyElev, SFCVM_SquashMinElev);
+            double zsquash= topoBathyElev - sfcvm_grid_height_m;
+            detail_offset = _water(zsquash, topoBathyElev, SFCVM_SquashMinElev);
             double n_entry_elevation = entry_elevation + detail_offset;
             err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
 
-// try with second step down -- detail version
+// try with second step down -- regional area
 	    if(err || values[0]<0  || values[1]<0 ) {
-                sfcvm_water_2step_count++;
-//                double n_entry_elevation = entry_elevation - sfcvm_grid_height_regional_m;
-                regional_offset = _water(sfcvm_grid_height_regional_m, topoBathyElev, SFCVM_SquashMinElev);
-                double n_entry_elevation = entry_elevation + regional_offset;
-                err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
+	        sfcvm_water_2step_count++;     
+                int step_cnt=1;
+		double previous_zsquash=0;
+                double previous_n_entry_elevation = 0;
+                while(1) {
 
-	        if(err || values[0]<0  || values[1]<0 ) {
-                  sfcvm_water_loop_count++;
-//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: still bad, found: at %lf %lf %lf -- surface %lf regional_offset %lf\n", entry_longitude, entry_latitude, n_entry_elevation, topoBathyElev, regional_offset); }
+                  double zsquash= topoBathyElev - (sfcvm_grid_height_regional_m * step_cnt);
+                  regional_offset = _water(zsquash, topoBathyElev, SFCVM_SquashMinElev);
+                  double n_entry_elevation = entry_elevation + regional_offset;
+                  err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
 
-                  int step_cnt=1;
-                  while(1) {
-                    double nn_entry_elevation = entry_elevation + 
-			    regional_offset - (sfcvm_grid_height_regional_m * step_cnt);
-                    err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, nn_entry_elevation);
-if(sfcvm_ucvm_debug) { fprintf(stderrfp,"Water still : at %lf %lf %lf -- surface %lf regional_offset %lf (%d)\n", entry_longitude, entry_latitude, nn_entry_elevation, topoBathyElev, regional_offset,step_cnt); }
-		    if(step_cnt > sfcvm_max_water_loops) {
-                      sfcvm_max_water_loops=step_cnt;
-                    }
-		    if( (values[0]> 0 && values[1]>0) || step_cnt > 100) {
-if(sfcvm_ucvm_debug) { fprintf(stderrfp,"  done(%d) : at %lf %lf %lf -- surface %lf regional_offset %lf \n", step_cnt, entry_longitude, entry_latitude, nn_entry_elevation, topoBathyElev, regional_offset); }
-                      break;
-                    }
+	          if(err || values[0]<0  || values[1]<0 ) {
+
+if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: still bad : at %lf %lf %lf -- surface %lf zsquash %lf\n", entry_longitude, entry_latitude, n_entry_elevation, topoBathyElev, zsquash); }
+
+		    previous_zsquash=zsquash;
+                    previous_n_entry_elevation = n_entry_elevation;
 		    step_cnt++;
-                  }
-                }
+                    } else {
 
-            } else { // good catch the 2nd time
+		    if(step_cnt > sfcvm_water_max_step) { sfcvm_water_max_step=step_cnt; }
+
+if(sfcvm_ucvm_debug) { 
+if(step_cnt > 1) { 
+	fprintf(stderrfp,"    done(%d) : at %lf %lf %lf -- surface %lf zsquash %lf  : previous_zsquash %lf previous_n_entry_elevation %lf\n", step_cnt, entry_longitude, entry_latitude, n_entry_elevation, topoBathyElev, zsquash, previous_zsquash, previous_n_entry_elevation);
+} else {
+	fprintf(stderrfp,"    done(%d) : at %lf %lf %lf -- surface %lf zsquash %lf\n", step_cnt, entry_longitude, entry_latitude, n_entry_elevation, topoBathyElev, zsquash);
+}
+}
+
+/* XXX post process to be like borehole thing might have gone 'too deep' */
+                      break;
+                  }
+
+                } // while-loop
+		  
+                } else { // good catch the 2nd time
             }
 
           } else { // good catch the first time
+		   //
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: good, 1st at (%lf %lf %lf) surface %lf\n", entry_longitude, entry_latitude, entry_elevation, topoBathyElev); }
           }
 
-          } else { // above the sea level
-              err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
+        } else { // above the sea level
+          err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, entry_elevation);
       }
+
+
+
 
       if(!err) {
         data[i].vp=values[0];
@@ -610,8 +620,9 @@ int sfcvm_finalize() {
      fprintf(stderrfp,"    total water count=(%d)\n",sfcvm_water_count);
      fprintf(stderrfp,"    total water step count=(%d)\n",sfcvm_water_step_count);
      fprintf(stderrfp,"    total water 2 step count=(%d)\n",sfcvm_water_2step_count);
-     fprintf(stderrfp,"    total water loop count=(%d)\n",sfcvm_water_loop_count);
-     fprintf(stderrfp,"    max water loops =(%d)\n",sfcvm_max_water_loops);
+
+     fprintf(stderrfp,"    max water step =(%d)\n",sfcvm_water_max_step);
+
      fclose(stderrfp);
     }
 
