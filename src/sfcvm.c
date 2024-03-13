@@ -104,6 +104,8 @@ int sfcvm_water_count=0; // total number of water location
 int sfcvm_water_step_count=0; // total number of water location that needed to step down
 int sfcvm_water_2step_count=0; // total number of water location that needed to step down
 int sfcvm_water_max_step=0;   // max number of loops needed to find valid data
+int sfcvm_water_max_step_limit=30;   // put a limit to loops needed to find valid data
+int sfcvm_water_max_step_limit_count=0;   // put a limit to loops needed to find valid data
 
 
 FILE *stderrfp;
@@ -235,6 +237,7 @@ int sfcvm_init(const char *dir, const char *label) {
     sfcvm_water_step_count=0;
     sfcvm_water_2step_count=0;
     sfcvm_water_max_step=0;
+    sfcvm_water_max_step_limit_count=0;
 
     return UCVM_MODEL_CODE_SUCCESS;
 }
@@ -475,7 +478,9 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
                   double n_entry_elevation = entry_elevation + regional_offset;
                   err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, n_entry_elevation);
 
-	          if(err || values[0]<0  || values[1]<0 ) {
+	          if( (err || values[0]<0  || values[1]<0 ) && (step_cnt < sfcvm_water_max_step_limit) ) {
+
+//fprintf(stderr,"WATER: still bad : at %lf %lf %lf -- surface %lf zsquash %lf\n", entry_longitude, entry_latitude, n_entry_elevation, topoBathyElev, zsquash);
 
 if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: still bad : at %lf %lf %lf -- surface %lf zsquash %lf\n", entry_longitude, entry_latitude, n_entry_elevation, topoBathyElev, zsquash); }
 
@@ -485,6 +490,12 @@ if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: still bad : at %lf %lf %lf -- su
                     } else {
 
 		    if(step_cnt > sfcvm_water_max_step) { sfcvm_water_max_step=step_cnt; }
+		    if(step_cnt >= sfcvm_water_max_step_limit ) {
+if(sfcvm_ucvm_debug) { 
+	              sfcvm_water_max_step_limit_count++;
+	fprintf(stderrfp,"   THIS IS BAD >> %d : at %lf %lf %lf -- surface %lf zsquash %lf  : previous_zsquash %lf previous_n_entry_elevation %lf\n", step_cnt, entry_longitude, entry_latitude, n_entry_elevation, topoBathyElev, zsquash, previous_zsquash, previous_n_entry_elevation);
+}
+                     }
 
 if(sfcvm_ucvm_debug) { 
 if(step_cnt > 1) { 
@@ -622,6 +633,7 @@ int sfcvm_finalize() {
      fprintf(stderrfp,"    total water 2 step count=(%d)\n",sfcvm_water_2step_count);
 
      fprintf(stderrfp,"    max water step =(%d)\n",sfcvm_water_max_step);
+     fprintf(stderrfp,"    max water step limit count=(%d)\n",sfcvm_water_max_step_limit_count);
 
      fclose(stderrfp);
     }
