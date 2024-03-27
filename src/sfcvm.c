@@ -48,8 +48,8 @@ sfcvm_model_t *sfcvm_velocity_model;
 /** The height of this model's region, in meters. */
 double sfcvm_total_height_m = 0;
 /** The grid height of the detail and regional sections, in meters. */
-double sfcvm_grid_height_m = 0;
-double sfcvm_grid_height_regional_m = 0;
+//double sfcvm_grid_height_m = 0;
+//double sfcvm_grid_height_regional_m = 0;
 
 #define sfcvm_true 1
 #define sfcvm_false 0
@@ -66,7 +66,6 @@ int sfcvm_logan_gabbro_type_id = 5;
 
 // max is 10
 char* sfcvm_filenames[10];  
-char* sfcvm_gridheights[10];  // one per data file in meter 
 int sfcvm_filenames_cnt;
 
 /* Coordinate reference system of points passed to queries.
@@ -104,6 +103,8 @@ int sfcvm_water_step_count=0; // total number of water location that needed to s
 int sfcvm_water_max_step=0;   // max number of loops needed to find valid data
 int sfcvm_water_max_step_limit=30;   // put a limit to loops needed to find valid data
 int sfcvm_water_max_step_limit_count=0;   // number of location that hit the limit
+int sfcvm_water_step_in_detail=0;   // in detail region
+int sfcvm_water_step_in_regional=0;   // in regional region
 
 
 FILE *stderrfp;
@@ -180,12 +181,14 @@ int sfcvm_init(const char *dir, const char *label) {
            sfcvm_configuration->data_files[i]);
 
 //if(sfcvm_ucvm_debug) fprintf(stderrfp,"using %s\n", sfcvm_filenames[i]);
+/*
        if( strcmp(sfcvm_configuration->data_labels[i],"sfcvm") == 0) {
            sfcvm_grid_height_m = sfcvm_configuration->data_gridheights[i];
        }
        if( strcmp(sfcvm_configuration->data_labels[i],"regional") == 0) {
            sfcvm_grid_height_regional_m = sfcvm_configuration->data_gridheights[i];
        }
+*/
     }
     sfcvm_total_height_m = sfcvm_configuration->model_depth;
 
@@ -197,7 +200,7 @@ int sfcvm_init(const char *dir, const char *label) {
 /** Log warnings and errors to "sfcvm_geo_error.log". **/
     sfcvm_geo_error_handler = geomodelgrids_squery_getErrorHandler(sfcvm_geo_query_object);
     assert(sfcvm_geo_error_handler);
-    // geomodelgrids_cerrorhandler_setLogFilename(sfcvm_geo_error_handler, "sfcvm_geo_error.log");
+//    geomodelgrids_cerrorhandler_setLogFilename(sfcvm_geo_error_handler, "sfcvm_geo_error.log");
 
     int geo_err=geomodelgrids_squery_initialize(sfcvm_geo_query_object, sfcvm_filenames,
                  sfcvm_filenames_cnt, sfcvm_valueNames, sfcvm_numValues, sfcvm_geo_crs);
@@ -236,6 +239,9 @@ int sfcvm_init(const char *dir, const char *label) {
     sfcvm_water_step_count=0;
     sfcvm_water_max_step=0;
     sfcvm_water_max_step_limit_count=0;
+
+    sfcvm_water_step_in_detail=0;
+    sfcvm_water_step_in_regional=0;
 
     return UCVM_MODEL_CODE_SUCCESS;
 }
@@ -407,8 +413,7 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
     double zTop;
     double zSurf;
     // could be either sfcvm_grid_height_m, or sfcvm_grid_height_regional_m
-    double dZ=sfcvm_grid_height_regional_m; 
-//    double dZ=sfcvm_grid_height_m; 
+    double dZ;
 
     void *query_object;
     void *error_handler;
@@ -464,6 +469,16 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
         err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, zSquashed);
 
         if(err || values[1]<0 || values[0] < 0 ) {
+
+          int model_i=geomodelgrids_squery_queryModelContains(query_object, entry_latitude, entry_longitude);
+          dZ=sfcvm_configuration->data_gridheights[model_i];
+
+	  if(model_i == 0) {
+            sfcvm_water_step_in_detail++;
+            } else {
+              sfcvm_water_step_in_regional++;
+          }
+
           sfcvm_water_step_count++;     
           int step_cnt =0;
           while(step_cnt < sfcvm_water_max_step_limit) {
@@ -483,14 +498,10 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 
           if(step_cnt >= sfcvm_water_max_step_limit ) {
              sfcvm_water_max_step_limit_count++;
-if(sfcvm_ucvm_debug) { 
-fprintf(stderrfp,"   THIS IS BAD >> %d : at %lf %lf %lf", step_cnt, entry_longitude, entry_latitude, zSquashed);
-}
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"   THIS IS BAD >> %d : at %lf %lf %lf", step_cnt, entry_longitude, entry_latitude, zSquashed); }
           }
 
-if(sfcvm_ucvm_debug) { 
-  fprintf(stderrfp,"    done(%d) : at %lf %lf %lf \n", step_cnt, entry_longitude, entry_latitude, zSquashed);
-}
+if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    done(%d) : at %lf %lf %lf \n", step_cnt, entry_longitude, entry_latitude, zSquashed); }
 
            } else { // good catch the first time
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: good, 1st at (%lf %lf %lf)\n", entry_longitude, entry_latitude, zSquashed); }
@@ -548,17 +559,17 @@ int sfcvm_getsurface(double entry_longitude, double entry_latitude,
   double topoElev = geomodelgrids_squery_queryTopElevation(query_object, entry_latitude, entry_longitude);
   double topoBathyElev = geomodelgrids_squery_queryTopoBathyElevation(query_object, entry_latitude, entry_longitude);
 
-if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: top %f\n", topoElev); }
-if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: topoBathy %f\n", topoBathyElev); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: top %f\n", topoElev); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,">>>    surface: topoBathy %f\n", topoBathyElev); }
 
   if( topoBathyElev == NODATA_VALUE ) { // outside of the model
-if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NODATA_VALUE surface..\n"); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NODATA_VALUE surface..\n"); }
       geomodelgrids_cerrorhandler_resetStatus(error_handler);
       return 1;
   }
 
   if( topoElev == NODATA_VALUE ) { // outside of the model
-if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NODATA_VALUE top..\n"); }
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"        OUTside of MODEL by NODATA_VALUE top..\n"); }
       geomodelgrids_cerrorhandler_resetStatus(error_handler);
       return 1;
   }
@@ -613,9 +624,9 @@ int sfcvm_finalize() {
      fprintf(stderrfp,"    total gabbro count=(%d)\n",sfcvm_gabbro_count);
      fprintf(stderrfp,"    total water count=(%d)\n",sfcvm_water_count);
      fprintf(stderrfp,"    total water step count=(%d)\n",sfcvm_water_step_count);
-
+     fprintf(stderrfp,"    water step in detail =(%d)\n",sfcvm_water_step_in_detail);
+     fprintf(stderrfp,"    water step in regional =(%d)\n",sfcvm_water_step_in_regional);
      fprintf(stderrfp,"    max water step =(%d)\n",sfcvm_water_max_step);
-     fprintf(stderrfp,"    max water step limit count=(%d)\n",sfcvm_water_max_step_limit_count);
 
      fclose(stderrfp);
     }
@@ -659,7 +670,7 @@ int _skip(char *str) {
     return p-str;
 }
 
-char *_search(char *str, char *label, char** vptr) {
+char* _search(char *str, char *label, char** vptr) {
     char value[1000];
     str = strstr(str, label);
     if (str == NULL) { return NULL; }
