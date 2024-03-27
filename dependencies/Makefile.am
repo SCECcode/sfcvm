@@ -1,5 +1,5 @@
 
-GEOMODELGRIDS_URL=https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/v23_4/lib/geomodelgrids.tar.gz
+GEOMODELGRIDS_URL=https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/v24_3/lib/geomodelgrids.tar.gz
 
 all: installed_geomodelgrids
 
