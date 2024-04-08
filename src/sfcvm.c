@@ -97,9 +97,9 @@ int sfcvm_ucvm_debug=0;
 int sfcvm_gabbro_on=1;
 int sfcvm_gabbro_count=0;
 int sfcvm_query_count=0; // total number of query location
-       //
-int sfcvm_water_count=0; // total number of water location
-int sfcvm_water_step_count=0; // total number of water location that needed to step down
+       
+int sfcvm_water_count=0; // total number of location that needs to be processed as such.
+int sfcvm_water_step_count=0; // total number of location that needed to step down processing
 int sfcvm_water_max_step=0;   // max number of loops needed to find valid data
 int sfcvm_water_max_step_limit=30;   // put a limit to loops needed to find valid data
 int sfcvm_water_max_step_limit_count=0;   // number of location that hit the limit
@@ -374,6 +374,7 @@ int _gabbro(double elevation, sfcvm_properties_t *data) {
 double _zLogical(int dimZ, double zMinSquashed, double zSurf, double zTop, double zSquashed, double dZ){
 
   double zLogical_n = (zSquashed*(zMinSquashed-zSurf)/zMinSquashed+zSurf-zTop)*(dimZ/(zTop+dimZ));
+
   zLogical_n = floor(zLogical_n/dZ)*dZ - 1.0;
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"water..: zlogical %lf\n", zLogical_n); }
 
@@ -461,56 +462,51 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
           zSquashed= 0.0 - points[i].depth;
       }
 
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"       zSquashed.. %lf\n", zSquashed); }
+
       int err;
-      if(zSurf < 0) { // under the sea level
-        sfcvm_water_count++;     
+      err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, zSquashed);
 
-// try first without step down
-        err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, zSquashed);
+      if(zSurf < 0) sfcvm_water_count++;
+      // special case -- under the water
+      if( (zSurf < 0 && err) ||
+            ((zSurf < 0 || zSquashed < zSurf) && (values[0] != NODATA_VALUE) && (values[1] == NODATA_VALUE))) {
+        sfcvm_water_step_count++;     
+        int model_i=geomodelgrids_squery_queryModelContains(query_object, entry_latitude, entry_longitude);
+        dZ=sfcvm_configuration->data_gridheights[model_i];
 
-        if(err || values[1]<0 || values[0] < 0 ) {
+	if(model_i == 0) {
+          sfcvm_water_step_in_detail++;
+          } else {
+            sfcvm_water_step_in_regional++;
+        }
 
-          int model_i=geomodelgrids_squery_queryModelContains(query_object, entry_latitude, entry_longitude);
-          dZ=sfcvm_configuration->data_gridheights[model_i];
-
-	  if(model_i == 0) {
-            sfcvm_water_step_in_detail++;
-            } else {
-              sfcvm_water_step_in_regional++;
-          }
-
-          sfcvm_water_step_count++;     
-          int step_cnt =0;
-          while(step_cnt < sfcvm_water_max_step_limit) {
+        int step_cnt =0;
+        while(step_cnt < sfcvm_water_max_step_limit) {
 
 // could be either sfcvm_grid_height_m, or sfcvm_grid_height_regional_m
-            zLogical= _zLogical(dimZ, zMinSquashed, zSurf, zTop, zSquashed, dZ);
-            zSquashed= _zSquashed(dimZ, zMinSquashed, zSurf, zTop, dZ, zLogical);
+          zLogical= _zLogical(dimZ, zMinSquashed, zSurf, zTop, zSquashed, dZ);
+          zSquashed= _zSquashed(dimZ, zMinSquashed, zSurf, zTop, dZ, zLogical);
 
-            err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, zSquashed);
-
-            if(err) break;
-	    if(values[0]>0 && values[1]>0) break;
-
-            if(step_cnt > sfcvm_water_max_step) { sfcvm_water_max_step=step_cnt; }
-            step_cnt++;
-          } // while loop
-
-          if(step_cnt >= sfcvm_water_max_step_limit ) {
-             sfcvm_water_max_step_limit_count++;
-//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"   THIS IS BAD >> %d : at %lf %lf %lf", step_cnt, entry_longitude, entry_latitude, zSquashed); }
-          }
-
-if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    done(%d) : at %lf %lf %lf \n", step_cnt, entry_longitude, entry_latitude, zSquashed); }
-
-           } else { // good catch the first time
-//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: good, 1st at (%lf %lf %lf)\n", entry_longitude, entry_latitude, zSquashed); }
-         }
-
-        } else { // above the sea level
           err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, zSquashed);
-      }
 
+          if(err) break;
+          if(values[0]>0 && values[1]>0) break;
+
+          if(step_cnt > sfcvm_water_max_step) { sfcvm_water_max_step=step_cnt; }
+           step_cnt++;
+        } // while loop
+
+        if(step_cnt >= sfcvm_water_max_step_limit ) {
+           sfcvm_water_max_step_limit_count++;
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"   THIS IS BAD >> %d : at %lf %lf %lf", step_cnt, entry_longitude, entry_latitude, zSquashed); }
+        }
+
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    done(%d) : at %lf %lf %lf \n", step_cnt, entry_longitude, entry_latitude, zSquashed); }
+
+        } else { // good catch the first time
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"WATER: good, 1st at (%lf %lf %lf)\n", entry_longitude, entry_latitude, zSquashed); }
+      }
 
       if(!err) {
         data[i].vp=values[0];
