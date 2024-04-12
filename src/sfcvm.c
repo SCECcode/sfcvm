@@ -59,10 +59,12 @@ int sfcvm_plugin=sfcvm_false;
 /* Values and order to be returned in queries.  */
 static const size_t sfcvm_numValues = 4;
 static const char* const sfcvm_valueNames[4] = { "Vp", "Vs", "density","zone_id" };
-// "San Leandro G";
+// "San Leandro G" -- detailed
 int sfcvm_san_leandro_gabbro_type_id = 4; 
-// "Logan G"
+// "Logan G"  -- detailed
 int sfcvm_logan_gabbro_type_id = 5; 
+// "GV gabbro" -- regional
+int sfcvm_gv_gabbro_type_id = 3; 
 
 // max is 10
 char* sfcvm_filenames[10];  
@@ -97,7 +99,7 @@ int sfcvm_ucvm_debug=0;
 int sfcvm_gabbro_on=1;
 int sfcvm_gabbro_count=0;
 int sfcvm_query_count=0; // total number of query location
-       
+       //
 int sfcvm_water_count=0; // total number of location that needs to be processed as such.
 int sfcvm_water_step_count=0; // total number of location that needed to step down processing
 int sfcvm_water_max_step=0;   // max number of loops needed to find valid data
@@ -466,13 +468,14 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 
       int err;
       err = geomodelgrids_squery_query(query_object, values, entry_latitude, entry_longitude, zSquashed);
+      // model_i = 0, in detail area, model_i = 1, in regional area
+      int model_i=geomodelgrids_squery_queryModelContains(query_object, entry_latitude, entry_longitude);
 
       if(zSurf < 0) sfcvm_water_count++;
       // special case -- under the water
       if( (zSurf < 0 && err) ||
             ((zSurf < 0 || zSquashed < zSurf) && (values[0] != NODATA_VALUE) && (values[1] == NODATA_VALUE))) {
         sfcvm_water_step_count++;     
-        int model_i=geomodelgrids_squery_queryModelContains(query_object, entry_latitude, entry_longitude);
         dZ=sfcvm_configuration->data_gridheights[model_i];
 
 	if(model_i == 0) {
@@ -517,9 +520,9 @@ int sfcvm_query(sfcvm_point_t *points, sfcvm_properties_t *data, int numpoints) 
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"At b %lf %lf type(%lf) -- vp(%lf) vs(%lf)\n", entry_longitude, entry_latitude, values[3], values[0], values[1]); }
 
         int typeid= ROUND_2_INT(values[3]);
-        if( (typeid == sfcvm_san_leandro_gabbro_type_id) ||
-               (typeid == sfcvm_logan_gabbro_type_id )) {
-//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: found: at %lf %lf\n", entry_longitude, entry_latitude); }
+        if( (model_i == 0 && ((typeid == sfcvm_san_leandro_gabbro_type_id) || (typeid == sfcvm_logan_gabbro_type_id )))
+           || (model_i == 1 && (typeid == sfcvm_gv_gabbro_type_id)) ) {
+if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: found: at %lf %lf\n", entry_longitude, entry_latitude); }
            _gabbro(zSquashed,&data[i]);
         } else {
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"GABBRO: no: at %lf %lf %lf\n", entry_longitude, entry_latitude, values[3]); }
