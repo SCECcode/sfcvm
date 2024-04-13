@@ -18,6 +18,7 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	; fi
 	$(MKDIR_P) geomodelgrids-build
 	cd ${abs_builddir}/geomodelgrids && \
+		libtoolize && \
 		aclocal && \
 		autoreconf -if && \
 		automake --add-missing
@@ -26,7 +27,7 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 			--prefix=$(prefix) \
 			--with-hdf5-incdir=$(UCVM_HDF5_INC) --with-hdf5-libdir=$(UCVM_HDF5_LIB) \
 			--with-proj-incdir=$(UCVM_PROJ_INC) --with-proj-libdir=$(UCVM_PROJ_LIB) \
-			CC=$(CC) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="-Wall -std=c++11" LDFLAGS="$(LDFLAGS)"; \
+			CC=$(CC) CXX=$(CXX) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="-Wall -std=c++11" LDFLAGS="$(LDFLAGS)"; \
 		make -C libsrc && make install -C libsrc && \
 		touch $(abs_builddir)/installed_$@
 else
