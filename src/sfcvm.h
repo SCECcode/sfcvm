@@ -69,6 +69,8 @@ typedef struct sfcvm_configuration_t {
 	int model_depth;
 	/** The model gabbro */
 	int model_gabbro;
+	/** The model squashminelev */
+	double model_squashminelev;
 
         /* raw model datafile */
         char *data_labels[10];

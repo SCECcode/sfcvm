@@ -10,6 +10,9 @@ depth = 45000
 # on or off
 gabbro = on
 
+# meter
+squashminelev = -45000
+
 # max number of data files = 10
 # gridheight is in meter
 

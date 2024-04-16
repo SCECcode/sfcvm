@@ -251,8 +251,6 @@ int sfcvm_init(const char *dir, const char *label) {
 void set_setSquashMinElev(double val) {
 //if(sfcvm_ucvm_debug) { fprintf(stderrfp,"sfcvm.c: SETTING new squashing min value (%lf)\n",val); }
     SFCVM_SquashMinElev=val;
-    geomodelgrids_squery_setSquashMinElev(sfcvm_geo_query_object, SFCVM_SquashMinElev);
-    geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
 }
 
 void set_setGabbro(int val) {
@@ -600,8 +598,13 @@ void _free_sfcvm_configuration(sfcvm_configuration_t *config) {
 }
 
 void _dump_sfcvm_configuration(sfcvm_configuration_t *config) {
+    fprintf(stderrfp,"    zone : %d\n", config->utm_zone);
+    fprintf(stderrfp,"    dir : %s\n", config->model_dir);
+    fprintf(stderrfp,"    depth : %d\n", config->model_depth);
+    fprintf(stderrfp,"    gabbro : %d\n", config->model_gabbro);
+    fprintf(stderrfp,"    squashminelev : %lf\n", config->model_squashminelev);
     for(int i=0; i< config->data_cnt; i++) {
-       if(sfcvm_ucvm_debug) { fprintf(stderrfp,"    <%d>  %s: %s\n",i,config->data_labels[i], config->data_files[i]); }
+       fprintf(stderrfp,"    <%d>  %s: %s\n",i,config->data_labels[i], config->data_files[i]);
     }
 }
 
@@ -771,6 +774,7 @@ sfcvm_configuration_t *sfcvm_init_configuration() {
     config->utm_zone = 10;
     config->model_depth = 4500;
     config->model_gabbro = 1;
+    config->model_squashminelev = -4500;
     config->data_cnt=0;
     return config;
 }
@@ -817,6 +821,9 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                      config->model_gabbro = 0;
                 }
                 set_setGabbro(config->model_gabbro);
+            } else if (strcmp(key, "squashminelev") == 0) {
+                config->model_squashminelev = atol(value);
+                set_setSquashMinElev(config->model_squashminelev);
             } else if (strcmp(key, "model_dir") == 0) {
                 sprintf(config->model_dir, "%s", value);
             } else if (strcmp(key, "data_file") == 0) {
@@ -831,8 +838,9 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
        }
 
     }
-//if(sfcvm_ucvm_debug) _dump_sfcvm_configuration(config);
 
+    if(sfcvm_ucvm_debug) _dump_sfcvm_configuration(config);
+    
     // Have we set up all configuration parameters?
     if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
       sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");
