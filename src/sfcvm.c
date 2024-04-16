@@ -96,7 +96,6 @@ const char *WHITESPACE = " \t\n";
 /*************************************/
 
 int sfcvm_ucvm_debug=0;
-int sfcvm_gabbro_on=1;
 int sfcvm_gabbro_count=0;
 int sfcvm_query_count=0; // total number of query location
        //
@@ -114,6 +113,7 @@ FILE *stderrfp;
 int sfcvm_force_depth=0;
 
 double SFCVM_SquashMinElev=-45000.0;
+int SFCVM_Gabbro=1;
 
 // set in, sfcvm_setparam(int id, int param, ...)
 int sfcvm_zmode=SFCVM_ZMODE_DEPTH; // SFCVM_ZMODE_DEPTH or SFCVM_ZMODE_ELEVATION
@@ -136,7 +136,7 @@ int sfcvm_init(const char *dir, const char *label) {
     char configbuf[512];
 
     // Initialize variables.
-    sfcvm_configuration = (sfcvm_configuration_t *)calloc(1, sizeof(sfcvm_configuration_t));
+    sfcvm_configuration = sfcvm_init_configuration();
     sfcvm_velocity_model = (sfcvm_model_t *)calloc(1, sizeof(sfcvm_model_t));
     sfcvm_config_string = (char *)calloc(SFCVM_CONFIG_MAX, sizeof(char));
 
@@ -255,6 +255,12 @@ void set_setSquashMinElev(double val) {
     geomodelgrids_squery_setSquashMinElev(sfcvm_utm_query_object, SFCVM_SquashMinElev);
 }
 
+void set_setGabbro(int val) {
+//if(sfcvm_ucvm_debug) { fprintf(stderrfp,"sfcvm.c: SETTING Gabbro processing(%ld)\n",val); }
+    SFCVM_Gabbro=val;
+}
+
+
 /**  
   * 
 **/
@@ -274,6 +280,7 @@ int sfcvm_setparam(int id, int param, ...)
     case UCVM_MODEL_PARAM_MODEL_CONF: // from ucvm.conf
       pstr = va_arg(ap, char *);
       pval = va_arg(ap, double);
+fprintf(stderr,"sfcvm_setparam : UCVM_MODEL_PARAM_MODEL_CONF %ld\n",pval);
       if (strcmp(pstr, "SquashMinElev") == 0) {
         set_setSquashMinElev(pval);
       }
@@ -333,6 +340,7 @@ int _processUCVMConfiguration(char *confstr) {
   if(cJSON_IsNumber(squash_min_elev)){
     set_setSquashMinElev(squash_min_elev->valuedouble);
 //if(sfcvm_ucvm_debug){ fprintf(stderrfp, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev); }
+{ fprintf(stderr, "Using %lf as SquashMinEelv\n",SFCVM_SquashMinElev); }
     } else {
       cJSON_Delete(confjson);
       return UCVM_MODEL_CODE_ERROR;
@@ -361,7 +369,7 @@ int _gabbro(double elevation, sfcvm_properties_t *data) {
     double vp = 4.2 + (depth) * sfcvm_gabbro_vp_delta; 
     double vs = 0.7858 - (1.2344 * vp) + (0.7949 * vp * vp) - (0.1238 * vp * vp * vp) + (0.0064 * vp * vp * vp * vp);
     double rho = 2.4372 + (0.0761 * vp);
-    if(sfcvm_gabbro_on) {
+    if(SFCVM_Gabbro) {
       data->vp= vp * 1000;
       data->vs= vs * 1000;
       data->rho = rho * 1000;
@@ -756,6 +764,18 @@ void _splitline(char* lptr, char key[], char value[]) {
 } 
 
 /**
+ * alloc and initalize a sfcvm configuration struct.
+ */
+sfcvm_configuration_t *sfcvm_init_configuration() {
+    sfcvm_configuration_t *config=(sfcvm_configuration_t *)calloc(1, sizeof(sfcvm_configuration_t));
+    config->utm_zone = 10;
+    config->model_depth = 4500;
+    config->model_gabbro = 1;
+    config->data_cnt=0;
+    return config;
+}
+
+/**
  * Reads the configuration file describing the various properties of SFCVM and populates
  * the configuration struct. This assumes configuration has been "calloc'ed" and validates
  * that each value is not zero at the end.
@@ -790,6 +810,13 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
                 config->utm_zone = atoi(value);
             } else if (strcmp(key, "depth") == 0) {
                 config->model_depth = atoi(value);
+            } else if (strcmp(key, "gabbro") == 0) {
+                if(strcmp(value,"on") == 0) {
+                   config->model_gabbro = 1;
+                   } else {
+                     config->model_gabbro = 0;
+                }
+                set_setGabbro(config->model_gabbro);
             } else if (strcmp(key, "model_dir") == 0) {
                 sprintf(config->model_dir, "%s", value);
             } else if (strcmp(key, "data_file") == 0) {
@@ -805,6 +832,7 @@ int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config) {
 
     }
 //if(sfcvm_ucvm_debug) _dump_sfcvm_configuration(config);
+
     // Have we set up all configuration parameters?
     if (config->utm_zone == 0 || config->model_dir[0] == '\0' ) {
       sfcvm_print_error("One configuration parameter not specified. Please check your configuration file.");

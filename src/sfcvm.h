@@ -67,6 +67,8 @@ typedef struct sfcvm_configuration_t {
 	char model_dir[1000];
 	/** The model depth */
 	int model_depth;
+	/** The model gabbro */
+	int model_gabbro;
 
         /* raw model datafile */
         char *data_labels[10];
@@ -143,6 +145,7 @@ int sfcvm_setparam(int, int, ...);
 // Non-UCVM Helper Functions
 /** Reads the configuration file. */
 int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config);
+sfcvm_configuration_t *sfcvm_init_configuration();
 void sfcvm_setdebug();
 void sfcvm_print_error(char *err);
 int sfcvm_setzmode(char* z);
