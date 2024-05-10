@@ -182,7 +182,7 @@ int sfcvm_init(const char *dir, const char *label) {
        }
     }
 
-/* Create and initialize serial query object using the parameters  stored in local variables.  */
+/* Create and initialize serial query object using the parameters stored in local variables.  */
     sfcvm_geo_query_object = geomodelgrids_squery_create();
     assert(sfcvm_geo_query_object);
 
