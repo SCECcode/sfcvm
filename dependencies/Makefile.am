@@ -24,6 +24,7 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	cd ${abs_builddir}/geomodelgrids-build && \
 		${abs_builddir}/geomodelgrids/configure \
 			--prefix=$(prefix) \
+			--enable-python \
 			--with-hdf5-incdir=$(UCVM_HDF5_INC) --with-hdf5-libdir=$(UCVM_HDF5_LIB) \
 			--with-proj-incdir=$(UCVM_PROJ_INC) --with-proj-libdir=$(UCVM_PROJ_LIB) \
 			CC=$(CC) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="-Wall -std=c++11" LDFLAGS="$(LDFLAGS)"; \
