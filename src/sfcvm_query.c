@@ -109,9 +109,10 @@ fprintf(stderr,"LINE: (%s)\n",line);
               if(zmode == UCVM_MODEL_COORD_GEO_ELEV ) {
                 double elev=pt.depth;
                 double surface;
+                double top;
                 void *error_handler;
                 
-                rc=sfcvm_getsurface(pt.longitude, pt.latitude, &surface);
+                rc=sfcvm_getsurface(pt.longitude, pt.latitude, &surface, &top);
                 if(rc == 1) {
                   continue;
                 }			 

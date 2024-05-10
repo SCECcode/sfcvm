@@ -31,7 +31,7 @@ typedef enum { SFCVM_ZMODE_ELEVATION = 0,
 typedef enum { SQUASH_MIN_ELEV = 0 } sfcvm_model_param_t;
 
 
-#define NO_DATA -1.0e+20
+#define NODATA_VALUE -1.0e+20
 #define SFCVM_CONFIG_MAX 1000
 
 // Structures
@@ -65,6 +65,12 @@ typedef struct sfcvm_configuration_t {
 	int utm_zone;
 	/** The model directory */
 	char model_dir[1000];
+	/** The model depth */
+	int model_depth;
+	/** The model gabbro */
+	int model_gabbro;
+	/** The model squashminelev */
+	double model_squashminelev;
 
         /* raw model datafile */
         char *data_labels[10];
@@ -141,9 +147,10 @@ int sfcvm_setparam(int, int, ...);
 // Non-UCVM Helper Functions
 /** Reads the configuration file. */
 int sfcvm_read_configuration(char *file, sfcvm_configuration_t *config);
+sfcvm_configuration_t *sfcvm_init_configuration();
 void sfcvm_setdebug();
 void sfcvm_print_error(char *err);
 int sfcvm_setzmode(char* z);
-int sfcvm_getsurface(double entry_longitude, double entry_latitude, double *surface);
+int sfcvm_getsurface(double entry_longitude, double entry_latitude, double *surface, double *top);
 
 #endif

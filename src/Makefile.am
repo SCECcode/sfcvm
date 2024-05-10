@@ -2,7 +2,7 @@
 
 # General compiler/linker flags
 AM_CFLAGS = ${CFLAGS} -I$(prefix)/include 
-AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib -lgeomodelgrids
+AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib -lm -lgeomodelgrids
 
 TARGETS = sfcvm_query libsfcvm.a libsfcvm.so
 

@@ -5,6 +5,14 @@ utm_zone=10
 model_dir = sfcvm 
 model_data_path = https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/models
 
+depth = 45000
+
+# on or off
+gabbro = on
+
+# meter
+squashminelev = -45000
+
 # max number of data files = 10
 # gridheight is in meter
 

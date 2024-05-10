@@ -1,5 +1,5 @@
 
-GEOMODELGRIDS_URL=https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/v23_4/lib/geomodelgrids.tar.gz
+GEOMODELGRIDS_URL=https://g-c662a6.a78b8.36fe.data.globus.org/ucvm/v24_4/lib/geomodelgrids.tar.gz
 
 all: installed_geomodelgrids
 
@@ -18,6 +18,7 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	; fi
 	$(MKDIR_P) geomodelgrids-build
 	cd ${abs_builddir}/geomodelgrids && \
+		libtoolize && \
 		aclocal && \
 		autoreconf -if && \
 		automake --add-missing
@@ -27,7 +28,7 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 			--enable-python \
 			--with-hdf5-incdir=$(UCVM_HDF5_INC) --with-hdf5-libdir=$(UCVM_HDF5_LIB) \
 			--with-proj-incdir=$(UCVM_PROJ_INC) --with-proj-libdir=$(UCVM_PROJ_LIB) \
-			CC=$(CC) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="-Wall -std=c++11" LDFLAGS="$(LDFLAGS)"; \
+			CC=$(CC) CXX=$(CXX) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="-Wall -std=c++14" LDFLAGS="$(LDFLAGS)"; \
 		make -C libsrc && make install -C libsrc && \
 		touch $(abs_builddir)/installed_$@
 else
