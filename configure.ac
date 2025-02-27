@@ -86,6 +86,20 @@ if test -z "$CURL" ; then
   CURL=`echo "Error: curl is not installed." ; false`
 fi
 
+##check optional large data path
+##SFCVM_LARGEDATA_DIR=$CVM_LARGEDATA_DIR/model/sfcvm
+if test x"$CVM_LARGEDATA_DIR" != x; then
+   # test directory existence
+   SFCVM_LARGEDATA_DIR=$CVM_LARGEDATA_DIR/model/sfcvm
+# In docker container building.. this is not accessible  yet
+#   AC_CHECK_FILE($CVM_LARGEDATA_DIR/model/sfcvm/USGS_SFCVM_v21-1_detailed.h5, [], [AC_MSG_ERROR(["SFCVM data not found in cvm_largedata_dir"])])
+   AM_CONDITIONAL([WITH_SFCVM_LARGEDATA_DIR], true)
+   AC_SUBST(SFCVM_LARGEDATA_DIR)
+else
+   AM_CONDITIONAL(WITH_SFCVM_LARGEDATA_DIR, false)
+fi
+
+
 # Set final CFLAGS and LDFLAGS
 CFLAGS="$CFLAGS"
 LDFLAGS="$LDFLAGS"
