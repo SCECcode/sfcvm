@@ -27,6 +27,7 @@ else
 		$(LN_S) -f ${prefix}/data/sfcvm .; \
 	fi
 endif
+	cp config ${prefix}/data
 
 dist-clean :
 	rm -rf sfcvm
