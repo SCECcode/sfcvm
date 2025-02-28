@@ -17,17 +17,17 @@ if WITH_SFCVM_LARGEDATA_DIR
 	if [ ! -d "${prefix}/data/sfcvm" ]; then \
 		$(MKDIR_P) ${prefix}/data; \
 		$(LN_S) -f $(SFCVM_LARGEDATA_DIR) ${prefix}/data/sfcvm; \
-		cp config ${prefix}/data; \
 		echo "USING WITH_SFCVM_LARGEDATA_DIR in sfcvm"; \
 	fi
+	cp config ${prefix}/data
 else
 	if [ ! -d "${prefix}/data/sfcvm" ]; then \
 		$(MKDIR_P) ${prefix}/data; \
 		mv sfcvm ${prefix}/data; \
 		$(LN_S) -f ${prefix}/data/sfcvm .; \
 	fi
-endif
 	cp config ${prefix}/data
+endif
 
 dist-clean :
 	rm -rf sfcvm
