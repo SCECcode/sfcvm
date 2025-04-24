@@ -2,61 +2,38 @@
 
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-
-## Description
-
-SFCVM San Francisco Community Velocity Model
-
-## Table of Contents
-1. [Software Documentation](https://github.com/SCECcode/sfcvm/wiki)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Contributing](#contributing)
-5. [Credits](#credit)
-6. [License](#license)
+USGS San Francisco Bay region 3D seismic velocity model v21.1
 
 ## Installation
-This package is intended to be installed as part of the UCVM framework,
-version 23.4.0 or higher. 
 
-This package can also be build as a standalone program
+This package is intended to be installed as part of the UCVM framework,
+version 25.x or higher. 
+
+## Contact the authors
+
+If you would like to contact the authors regarding this software,
+please e-mail software@scec.org. Note this e-mail address should
+be used for questions regarding the software itself (e.g. how
+do I link the library properly?). Questions regarding the model's
+science (e.g. on what paper is the SFCVM based?) should be directed
+to the model's authors, located in the AUTHORS file.
+
+## To build in standalone mode
+
+To install this package on your computer, please run the following commands:
 
 <pre>
-aclocal
-autoreconf -fi
-automake --add-missing
-./configure --prefix=/path/to/install
-cd data; ./make_data_files.py 
-make
-make install
+  aclocal
+  autoreconf -fi
+  automake --add-missing
+  ./configure --prefix=/path/to/install
+  cd data; ./make_data_files.py 
+  make
+  make install
 </pre>
-
-## Usage
-
-### UCVM
-
-As part of [UCVM](https://github.com/SCECcode/ucvm) installation, use 'sfcvm' as the model.
 
 ### sfcvm_query
 
 A command line program accepts Geographic Coordinates or UTM Zone 11 to extract velocity values
 from SFCVM.
-
-## Support
-Support for SFCVM is provided by the Southern California Earthquake Center
-(SCEC) Research Computing Group.  Users can report issues and feature requests 
-using SFCVM's github-based issue tracking link below. Developers will also 
-respond to emails sent to the SCEC software contact listed below.
-1. [SFCVM Github Issue Tracker](https://github.com/SCECcode/sfcvm/issues)
-2. Email Contact: software@scec.usc.edu
-
-## Contributing
-We welcome contributions to the SFCVM, please contact us at software@scec.usc.edu.
-
-## Credits
-* Brad Aagaard <baagaard@usgs.gov>
-
-## License
-This software is distributed under the BSD 3-Clause open-source license.
-Please see the [LICENSE.txt](LICENSE.txt) file for more information.
 

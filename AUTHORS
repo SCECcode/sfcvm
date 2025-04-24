@@ -3,6 +3,8 @@ All communication regarding using SFCVM or UCVM should be directed to
 software@scec.org. Any scientific questions regarding this model should 
 be directed to the researchers behind this model.
 
+Brad Aagaard <baagaard@usgs.gov>
+
 The data and code for this model is based off of the following paper:
 
 Aagaard, B.T., and Hirakawa, E.T., 2021, San Francisco Bay region 3D seismic 

@@ -92,9 +92,14 @@ if test x"$CVM_LARGEDATA_DIR" != x; then
    # test directory existence
    SFCVM_LARGEDATA_DIR=$CVM_LARGEDATA_DIR/model/sfcvm
 # In docker container building.. this is not accessible  yet
-#   AC_CHECK_FILE($CVM_LARGEDATA_DIR/model/sfcvm/USGS_SFCVM_v21-1_detailed.h5, [], [AC_MSG_ERROR(["SFCVM data not found in cvm_largedata_dir"])])
-   AM_CONDITIONAL([WITH_SFCVM_LARGEDATA_DIR], true)
-   AC_SUBST(SFCVM_LARGEDATA_DIR)
+   if test x"$CVM_IN_DOCKER" != x; then 
+     AM_CONDITIONAL([WITH_SFCVM_LARGEDATA_DIR], true)
+     AC_SUBST(SFCVM_LARGEDATA_DIR)
+   else
+     AC_CHECK_FILE([$SFCVM_LARGEDATA_DIR/USGS_SFCVM_v21-1_detailed.h5],
+                 [AM_CONDITIONAL([WITH_SFCVM_LARGEDATA_DIR], true) AC_SUBST(SFCVM_LARGEDATA_DIR)],
+                 [AM_CONDITIONAL(WITH_SFCVM_LARGEDATA_DIR, false)])
+   fi
 else
    AM_CONDITIONAL(WITH_SFCVM_LARGEDATA_DIR, false)
 fi
