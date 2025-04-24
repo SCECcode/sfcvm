@@ -102,7 +102,7 @@ fi
 
 # Set final CFLAGS and LDFLAGS
 CFLAGS="$CFLAGS"
-LDFLAGS="$LDFLAGS"
+LDFLAGS="$LDFLAGS -lm"
 
 AC_CONFIG_FILES([Makefile data/Makefile src/Makefile dependencies/Makefile test/Makefile test_geomodelgrids/Makefile])
 
