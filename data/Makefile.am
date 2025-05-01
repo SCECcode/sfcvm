@@ -9,7 +9,9 @@ all:
 if WITH_SFCVM_LARGEDATA_DIR
 	echo "USING WITH_SFCVM_LARGEDATA_DIR in sfcvm"
 else
-	./make_data_files.py
+	if [ ! -d "sfcvm" ]; then \
+		./make_data_files.py; \
+	fi
 endif
 
 install:
