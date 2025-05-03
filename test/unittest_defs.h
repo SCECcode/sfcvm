@@ -46,6 +46,7 @@ int test_assert_int(int val1, int val2);
 int test_assert_float(float val1, float val2);
 int test_assert_double(double val1, double val2);
 int test_assert_file(const char *file1, const char *file2);
+int test_assert_file_vs(const char *file1, const char *file2, int dontcare);
 
 /* Get time */
 int test_get_time(time_t *ts);

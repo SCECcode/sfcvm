@@ -1,0 +1,3 @@
+
+ucvm_query -b -m sfcvm < ../inputs/test_ucvm_sfcvm_gd.txt > test_ucvm_sfcvm_gd.ref
+ucvm_query -c ge -b -m sfcvm < ../inputs/test_ucvm_sfcvm_ge.txt > test_ucvm_sfcvm_ge.ref

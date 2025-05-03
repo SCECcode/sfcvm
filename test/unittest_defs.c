@@ -62,6 +62,16 @@ int test_assert_float(float val1, float val2)
   return(0);
 }
 
+// because of query using elevation, difference might be more obious
+int test_assert_float_big(float val1, float val2)
+{
+  if (fabsf(val1 - val2) > 1) {
+    fprintf(stderr, "FAIL: assertion %f != %f\n", val1, val2);
+    return(1);
+  }
+  return(0);
+}
+
 int test_assert_double(double val1, double val2)
 {
   if (fabs(val1 - val2) > 0.01) {
@@ -69,6 +79,92 @@ int test_assert_double(double val1, double val2)
     return(1);
   }
   return(0);
+}
+
+char *_split(char *s, char *d, char *target) {
+    // Get the first substring
+    char *ss = strtok(s, d);
+    while (ss != NULL) {
+        if(strstr(ss,target)!=NULL) {
+          // split after :
+	  char *pos=strstr(ss,":");
+          return pos+1;
+        }
+
+        // Get the next token
+        ss = strtok(NULL, d);
+    }
+    return "";
+}
+
+/*
+{ "lon":-121.9410,"lat":37.4550,"Z":0.000,"surf":1.493,"vs30":203.485,"crustal":"sfcvm",
+   "cr_vp":1801.430,"cr_vs":500.477,"cr_rho":2015.827,"gtl":"none","gtl_vp":0.000,"gtl_vs":0.000,
+   "gtl_rho":0.000,"cmb_algo":"crust","cmb_vp":1801.430,"cmb_vs":500.477,"cmb_rho":2015.827 }
+*/
+char *_split_vs_on_uline(char *uline) {
+   return _split(uline,",","cmb_vs");
+}
+
+/*
+vs:500.476797 vp:1801.430420 rho:2015.826750
+*/
+char *_split_vs_on_sline(char *sline) {
+   return _split(sline," ","vs");
+}
+
+int _get_next_line(FILE *fp, char *line, char *target) {
+    while(fgets(line, 500, fp) != NULL) {
+      char *pos=strstr(line,target);
+      if( pos == NULL) {
+        continue;
+        } else {
+          return(0);
+      }
+      
+    }
+    return(1);
+}
+
+// file1 needs to skip a line
+int test_assert_file_vs(const char *file1, const char *file2, int dontcare)
+{
+  FILE *fp1, *fp2;
+  char line1[500], line2[500];
+
+  fp1 = fopen(file1, "r");
+  fp2 = fopen(file2, "r");
+  if ((fp1 == NULL) || (fp2 == NULL)) {
+    printf("FAIL: unable to open %s and/or %s\n", file1, file2);
+    return(1);
+  }
+  // get to first line..
+  // line1 is from sfcvm_query, check for vs 
+  while(1) { 
+  // line1 is from sfcvm_query, check for vs 
+    int sfcvm_rc=_get_next_line(fp1, line1, "vs:");
+    int ucvm_rc=_get_next_line(fp2, line2, "cmb_vs");
+    if(sfcvm_rc || ucvm_rc) { 
+        fclose(fp1); fclose(fp2); return(0);
+    }
+
+    // compare them
+    //fprintf(stderr,"LINE1 %s\n",line1);
+    //fprintf(stderr,"LINE2 %s\n",line2);
+    char *ucvm_vs=_split_vs_on_uline(line2); 
+    char *sfcvm_vs=_split_vs_on_sline(line1);
+    if(test_assert_float(atof(ucvm_vs), atof(sfcvm_vs))) {
+        if(!dontcare) {
+          fclose(fp1); fclose(fp2); return(1);
+          } else {
+            fprintf(stderr,"  NOT MATCH: ucvm(%s) and sfcvm(%s)\n", ucvm_vs, sfcvm_vs);
+        }
+        } else {
+          fprintf(stderr,"  MATCH:  ucvm(%s) and sfcvm(%s)\n", ucvm_vs, sfcvm_vs);
+    }
+  }
+  fclose(fp1); fclose(fp2);
+  return (0);
 }
 
 

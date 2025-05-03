@@ -11,7 +11,7 @@
 #include "unittest_defs.h"
 #include "test_helper.h"
 
-int debug_mode=1;
+int debug_mode=0;
 sfcvm_surf_t test_surfs[100];
 int test_surfs_cnt=0;
 

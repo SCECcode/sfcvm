@@ -50,7 +50,7 @@ int test_ucvm_sfcvm_points_ge()
   }
  
   /* Perform diff btw outfile and ref */
-  if (test_assert_file(outfile, reffile) != 0) {
+  if (test_assert_file_vs(outfile, reffile, 1) != 0) {
     printf("FAIL\n");
     return(1);
   }
@@ -92,7 +92,7 @@ int test_ucvm_sfcvm_points_gd()
   }
 
   /* Perform diff btw outfile and ref */
-  if (test_assert_file(outfile, reffile) != 0) {
+  if (test_assert_file_vs(outfile, reffile, 0) != 0) {
     printf("FAIL\n");
     return(1);
   }
@@ -127,7 +127,7 @@ int suite_ucvm_sfcvm_exec(const char *xmldir)
 
   strcpy(suite.tests[1].test_name, "test_ucvm_sfcvm_points_ge");
   suite.tests[1].test_func = &test_ucvm_sfcvm_points_ge;
-  suite.tests[1].elapsed_time = 0.0;
+   suite.tests[1].elapsed_time = 0.0;
 
   if (test_run_suite(&suite) != 0) {
     fprintf(stderr, "Failed to execute tests\n");

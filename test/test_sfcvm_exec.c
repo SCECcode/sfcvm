@@ -97,9 +97,9 @@ int test_query_by_depth()
       return(1);
   }
 
-  fprintf(stderr,"depth test point (%lf,%lf,%lf)\n",pt.longitude,pt.latitude,pt.depth);
-  fprintf(stderr,"depth expected result (%lf,%lf,%lf)\n",expect.vs,expect.vp,expect.rho);
-  fprintf(stderr,"depth got result (%lf,%lf,%lf)\n",ret.vs,ret.vp,ret.rho);
+//  fprintf(stderr,"depth test point (%lf,%lf,%lf)\n",pt.longitude,pt.latitude,pt.depth);
+//  fprintf(stderr,"depth expected result (%lf,%lf,%lf)\n",expect.vs,expect.vp,expect.rho);
+//  fprintf(stderr,"depth got result (%lf,%lf,%lf)\n",ret.vs,ret.vp,ret.rho);
 
   // Close the model.
   assert(model_finalize() == 0);
@@ -151,9 +151,9 @@ int test_query_by_elevation()
       return(1);
   }
 
-  //fprintf(stderr,"elev test point (%lf,%lf,%lf,%lf)\n",pt.longitude,pt.latitude,pt_elevation,pt_surf);
-  //fprintf(stderr,"elev expected result (%lf,%lf,%lf)\n",expect.vs, expect.vp,expect.rho);
-  //fprintf(stderr,"elev got result (%lf,%lf,%lf)\n",ret.vs,ret.vp,ret.rho);
+//  fprintf(stderr,"elev test point (%lf,%lf,%lf,%lf)\n",pt.longitude,pt.latitude,pt_elevation,pt_surf);
+//  fprintf(stderr,"elev expected result (%lf,%lf,%lf)\n",expect.vs, expect.vp,expect.rho);
+//  fprintf(stderr,"elev got result (%lf,%lf,%lf)\n",ret.vs,ret.vp,ret.rho);
 
   // Close the model.
   assert(model_finalize() == 0);

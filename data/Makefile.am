@@ -31,5 +31,8 @@ else
 	cp config ${prefix}/data
 endif
 
+clean:
+	echo "clean"
+
 dist-clean :
 	rm -rf sfcvm
