@@ -2,7 +2,7 @@ name: sfcvm-ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [ foo ]
 
 jobs:
   sfcvm-build-standalone-linux:
@@ -18,7 +18,7 @@ jobs:
     - name: checkout sfcvm main
       uses: actions/checkout@v2
       with: 
-        ref: main 
+        ref: testMei 
     - name: build sfcvm
       run: ./.github/scripts/sfcvm-build.sh
       shell: bash
