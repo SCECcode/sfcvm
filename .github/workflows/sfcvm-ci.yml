@@ -2,7 +2,7 @@ name: sfcvm-ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [ foo ]
 
 jobs:
   sfcvm-build-standalone-linux:
