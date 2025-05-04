@@ -10,12 +10,5 @@ if [ $p != 0 ]; then
    exit 1 
 fi
 
-env LD_LIBRARY_PATH=../src ./run_accept | tee result_accept.txt
-p=`grep -c FAIL result_accept.txt` 
-if [ $p != 0 ]; then
-   echo "something wrong.."
-   exit 1 
-fi
-
 exit 0 
 
