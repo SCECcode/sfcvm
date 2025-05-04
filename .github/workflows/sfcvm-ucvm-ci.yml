@@ -2,7 +2,7 @@ name: sfcvm-ucvm-ci
 
 on:
   push:
-    branches: [ foo ]
+    branches: [ main ]
 
 jobs:
   sfcvm-build-ucvm-linux:
