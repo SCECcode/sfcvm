@@ -11,10 +11,17 @@ fi
 ## need to grab some python libs
 python3 -m pip install scipy h5py numpy pandas pybind11
 
-aclocal
-automake --add-missing
-autoconf
-./configure --prefix=$UCVM_INSTALL_PATH/model/wfcvm
+libtoolize
+autoreconf -i
+./configure --prefix=$UCVM_INSTALL_PATH/model/sfcvm
 make
 make install
+
+
+#aclocal
+#automake --add-missing
+#autoconf
+#./configure --prefix=$UCVM_INSTALL_PATH/model/sfcvm
+#make
+#make install
 
