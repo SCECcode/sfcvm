@@ -153,14 +153,16 @@ int test_assert_file_vs(const char *file1, const char *file2, int dontcare)
     //fprintf(stderr,"LINE2 %s\n",line2);
     char *ucvm_vs=_split_vs_on_uline(line2); 
     char *sfcvm_vs=_split_vs_on_sline(line1);
-    if(test_assert_float(atof(ucvm_vs), atof(sfcvm_vs))) {
-        if(!dontcare) {
-          fclose(fp1); fclose(fp2); return(1);
-          } else {
-            fprintf(stderr,"  NOT MATCH: ucvm(%s) and sfcvm(%s)\n", ucvm_vs, sfcvm_vs);
-        }
+    
+    if(dontcare) {
+        fprintf(stderr,"  DONT CARE:  ucvm(%s) and sfcvm(%s)\n", ucvm_vs, sfcvm_vs);
         } else {
-          fprintf(stderr,"  MATCH:  ucvm(%s) and sfcvm(%s)\n", ucvm_vs, sfcvm_vs);
+          if(test_assert_float(atof(ucvm_vs), atof(sfcvm_vs))) {
+              fprintf(stderr,"  NOT MATCH: ucvm(%s) and sfcvm(%s)\n", ucvm_vs, sfcvm_vs);
+              fclose(fp1); fclose(fp2); return(1);
+              } else {
+                  fprintf(stderr,"  MATCH:  ucvm(%s) and sfcvm(%s)\n", ucvm_vs, sfcvm_vs);
+          }
     }
   }
   fclose(fp1); fclose(fp2);
