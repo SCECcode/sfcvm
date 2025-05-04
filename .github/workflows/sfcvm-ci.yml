@@ -18,7 +18,7 @@ jobs:
     - name: checkout sfcvm main
       uses: actions/checkout@v2
       with: 
-        ref: testMei 
+        ref: main 
     - name: build sfcvm
       run: ./.github/scripts/sfcvm-build.sh
       shell: bash
