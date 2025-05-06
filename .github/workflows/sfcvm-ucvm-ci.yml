@@ -50,7 +50,7 @@ jobs:
       run: (mv sfcvm $RUNNER_WORKSPACE/sfcvm/ucvm/work/model; pwd; ls)
       shell: bash
     - name: build sfcvm as part of ucvm 
-      run: (cd $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm; ./.github/scripts/sfcvm-build.sh)
+      run: (cd $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm; source $UCVM_INSTALL_PATH/conf/ucvm_env.sh; ./.github/scripts/sfcvm-build.sh)
       shell: bash
 ### check ucvm is still valid
     - name: check on ucvm
