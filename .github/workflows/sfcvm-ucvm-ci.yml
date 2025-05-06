@@ -15,14 +15,17 @@ jobs:
       run: echo "UCVM_SRC_PATH=$RUNNER_WORKSPACE/sfcvm/ucvm" >> $GITHUB_ENV
     - name: set UCVM_INSTALL_PATH 
       run: echo "UCVM_INSTALL_PATH=$RUNNER_WORKSPACE/sfcvm/target" >> $GITHUB_ENV
+    - name: load python pkgs
+      run: (python3 -m pip install scipy h5py numpy pandas pybind11)
+      shell: bash
 ### build ucvm(main) first 
-    - id: get-ucvm 
+    - name: get-ucvm 
       uses: actions/checkout@v2
       with: 
         repository: 'SCECcode/UCVM'
         ref: testMei
         path: ucvm
-    - id: build-ucvm
+    - name: build-ucvm
       uses: ./ucvm/.github/actions/build-ucvm-action
       with:
          initiating-repo: 'sfcvm'
@@ -35,7 +38,7 @@ jobs:
 #           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_TOKEN }}
 #           NGROK_TIMEOUT: 3000
 #           SSH_PASS: ${{ secrets.NGROK_SECRET }}
-    - id: get-result
+    - name: get-result
       run: more ${{ steps.build-ucvm.outputs.build-log }}
       shell: bash
     - name: move stock sfcvm away
