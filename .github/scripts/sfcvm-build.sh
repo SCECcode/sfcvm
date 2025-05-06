@@ -18,10 +18,3 @@ make
 make install
 
 
-#aclocal
-#automake --add-missing
-#autoconf
-#./configure --prefix=$UCVM_INSTALL_PATH/model/sfcvm
-#make
-#make install
-
