@@ -9,7 +9,7 @@ USGS San Francisco Bay region 3D seismic velocity model v21.1
 ## Installation
 
 This package is intended to be installed as part of the UCVM framework,
-version 25.x or higher. 
+version 25.7 or higher. 
 
 ## Contact the authors
 
