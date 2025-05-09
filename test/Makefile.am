@@ -2,8 +2,8 @@
 
 bin_PROGRAMS = unittest 
 
-AM_CFLAGS = -DDYNAMIC_LIBRARY -I../src -Wall -std=c99
-AM_LDFLAGS = -L../src -lsfcvm -lm -ldl
+AM_CFLAGS = ${CFLAGS} -DDYNAMIC_LIBRARY -I../src -Wall -std=c99
+AM_LDFLAGS = ${LDFLAGS} -L../src -lsfcvm -L$(prefix)/lib -lm -lgeomodelgrids -ldl
 AM_CPPFLAGS = -I$(prefix)/include
 
 # Dist sources
