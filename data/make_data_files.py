@@ -12,8 +12,10 @@ import json
 model = "SFCVM"
 
 if sys.version_info.major >= (3) :
+  print("\n--- USING urllib.request\n")
   from urllib.request import urlopen
 else:
+  print("\n--- USING urllib2\n")
   from urllib2 import urlopen
 
 def usage():
@@ -21,6 +23,7 @@ def usage():
     sys.exit(0)
 
 def download_urlfile(url,fname):
+  print("\n--- downloading... \n",url)
   try:
     response = urlopen(url)
     CHUNK = 16 * 1024
