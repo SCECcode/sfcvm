@@ -31,16 +31,13 @@ jobs:
          initiating-repo: 'sfcvm'
          target-model: 'sfcvm'
          target-branch: 'testMei'
-    - name: Start SSH via Ngrok
-      if: ${{ success() }}
-      uses: luchihoratiu/debug-via-ssh@main
-      with:
-            NGROK_AUTH_TOKEN: ${{ secrets.NGROK_TOKEN }}
-            NGROK_TIMEOUT: 3000
-            SSH_PASS: ${{ secrets.NGROK_SECRET }}
-    - name: get-result
-      run: more ${{ steps.build-ucvm.outputs.build-log }}
-      shell: bash
+#   - name: Start SSH via Ngrok
+#     if: ${{ success() }}
+#     uses: luchihoratiu/debug-via-ssh@main
+#     with:
+#           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_TOKEN }}
+#           NGROK_TIMEOUT: 3000
+#           SSH_PASS: ${{ secrets.NGROK_SECRET }}
     - name: move stock sfcvm away
       run: (rm -rf $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm)
       shell: bash
