@@ -75,8 +75,14 @@ jobs:
       run: echo "UCVM_SRC_PATH=$RUNNER_WORKSPACE/sfcvm/ucvm" >> $GITHUB_ENV
     - name: set UCVM_INSTALL_PATH 
       run: echo "UCVM_INSTALL_PATH=$RUNNER_WORKSPACE/sfcvm/target" >> $GITHUB_ENV
+#   - name: Start SSH debug with tmate
+#     uses: mxschmitt/action-tmate@v3
+#     with:
+#       limit-access-to-actor: true
+#   - name: sleep to keep runner alive
+#     run: sleep 3600
     - name: load python pkgs
-      run: (python3 -m pip install scipy h5py numpy pandas pybind11)
+      run: (pipx install scipy h5py numpy pandas pybind11)
       shell: bash
 ### build ucvm(main) first 
     - name: get-ucvm 
