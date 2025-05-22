@@ -82,7 +82,7 @@ jobs:
 #   - name: sleep to keep runner alive
 #     run: sleep 3600
     - name: load python pkgs
-      run: (pipx install scipy h5py numpy pandas pybind11)
+      run: (pipx install --include-deps scipy h5py numpy pandas pybind11)
       shell: bash
 ### build ucvm(main) first 
     - name: get-ucvm 
