@@ -26,9 +26,9 @@ to the model's authors, located in the AUTHORS file.
 To install this package on your computer, please run the following commands:
 
 <pre>
-  aclocal
-  autoreconf -fi
-  automake --add-missing
+  aclocal -I m4
+  autoconf
+  automake --add-missing -f
   ./configure --prefix=/path/to/install
   cd data; ./make_data_files.py 
   make
