@@ -65,8 +65,8 @@ jobs:
       shell: bash
 
   sfcvm-build-ucvm-mac:
-    if: ${{ success() }}
-    needs: [sfcvm-build-ucvm-linux]
+#   if: ${{ success() }}
+#   needs: [sfcvm-build-ucvm-linux]
     runs-on: macos-latest
     strategy:
       matrix:
