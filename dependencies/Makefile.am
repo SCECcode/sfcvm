@@ -19,12 +19,11 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	$(MKDIR_P) geomodelgrids-build
 	cd ${abs_builddir}/geomodelgrids && \
 			cd ${abs_builddir}/geomodelgrids && \
-		rm -rf aclocal.m4 && \
-		libtoolize --force && \
+		libtoolize && \
 		aclocal -I m4 && \
 		autoupdate && \
 		autoreconf -if && \
-		automake --add-missing -f
+		automake --add-missing
 	cd ${abs_builddir}/geomodelgrids-build && \
 		CC=$(CC) CXX=$(CXX) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="-Wall -std=c++14" LDFLAGS="$(LDFLAGS)" ${abs_builddir}/geomodelgrids/configure \
 			--prefix=$(prefix) \
