@@ -2,7 +2,7 @@ name: sfcvm-ucvm-ci
 
 on:
   push:
-    branches: [ foo ]
+    branches: [ main ]
 
 jobs:
   sfcvm-build-ucvm-linux:
@@ -98,12 +98,12 @@ jobs:
          initiating-repo: 'sfcvm'
          target-model: 'sfcvm'
          target-branch: 'testMei'
-    - name: Start SSH debug with tmate
-      uses: mxschmitt/action-tmate@v3
-      with:
-        limit-access-to-actor: true
-    - name: sleep to keep runner alive
-      run: sleep 3600
+#   - name: Start SSH debug with tmate
+#     uses: mxschmitt/action-tmate@v3
+#     with:
+#       limit-access-to-actor: true
+#   - name: sleep to keep runner alive
+#     run: sleep 3600
     - name: move stock sfcvm away
       run: (rm -rf $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm)
       shell: bash
