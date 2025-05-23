@@ -5,30 +5,8 @@ AC_INIT([SFCVM],[1.0],[software@scec.org])
 AM_INIT_AUTOMAKE([foreign no-exeext])
 AC_CONFIG_MACRO_DIRS([m4])
 
-AC_CANONICAL_HOST
-
 # Checks for programs.
 AC_PROG_CC
-
-case "$host_os" in
-  darwin*)
-    if test "$GCC" = "yes"; then
-      gcc_version=`$CC -dumpversion`
-      major=`echo $gcc_version | cut -d. -f1`
-      minor=`echo $gcc_version | cut -d. -f2`
-    
-      if test "$major" -lt 9 || { test "$major" -eq 9 && test "$minor" -lt 3; }; then
-        AC_MSG_ERROR([GCC version 9.3 or higher is required for macos. Found: $gcc_version])
-      fi
-    else
-      AC_MSG_WARN([Not using GCC. This may lead to compatibility issues.])
-    fi
-    ;;
-  *) 
-    # don't care
-    ;; 
-esac
-
 AC_PROG_CXX
 AC_PROG_MKDIR_P
 AC_PROG_INSTALL
