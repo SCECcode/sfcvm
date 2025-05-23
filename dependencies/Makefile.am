@@ -18,9 +18,11 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	; fi
 	$(MKDIR_P) geomodelgrids-build
 	cd ${abs_builddir}/geomodelgrids && \
+			cd ${abs_builddir}/geomodelgrids && \
 		libtoolize && \
 		aclocal -I m4 && \
-		autoconf && \
+		autoupdate && \
+		autoreconf -if && \
 		automake --add-missing -f
 	cd ${abs_builddir}/geomodelgrids-build && \
 		${abs_builddir}/geomodelgrids/configure \
@@ -28,7 +30,7 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 			--enable-python \
 			--with-hdf5-incdir=$(UCVM_HDF5_INC) --with-hdf5-libdir=$(UCVM_HDF5_LIB) \
 			--with-proj-incdir=$(UCVM_PROJ_INC) --with-proj-libdir=$(UCVM_PROJ_LIB) \
-			CC=$(CC) CXX=$(CXX) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="\\"-Wall -std=c++14\\"" LDFLAGS="$(LDFLAGS)"; \
+			CC=$(CC) CXX=$(CXX) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="-Wall -std=c++14" LDFLAGS="$(LDFLAGS)"; \
 		make -C libsrc && make install -C libsrc && \
 		touch $(abs_builddir)/installed_$@
 else
