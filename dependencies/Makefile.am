@@ -22,7 +22,7 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 		rm -rf aclocal.m4 && \
 		libtoolize --force && \
 		aclocal -I m4 && \
-		autoheader && \
+		autoupdate && \
 		autoreconf -if && \
 		automake --add-missing -f
 	cd ${abs_builddir}/geomodelgrids-build && \
