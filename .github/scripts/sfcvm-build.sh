@@ -9,6 +9,8 @@ if [ $tmp == 'Darwin' ]; then
   brew install pipx
   brew install libtool
   export PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"
+  export CC=gcc-13
+  export CXX=gcc-13
 fi
 
 ## need to grab some python libs

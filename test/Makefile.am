@@ -1,6 +1,6 @@
 # Autoconf/automake file
 
-bin_PROGRAMS = unittest 
+bin_PROGRAMS = unittest accepttest
 
 AM_CFLAGS = ${CFLAGS} -DDYNAMIC_LIBRARY -I../src -Wall -std=c99
 AM_LDFLAGS = ${LDFLAGS} -L../src -lsfcvm -L$(prefix)/lib -lm -lgeomodelgrids -ldl
@@ -31,7 +31,6 @@ accepttest: accepttest.o unittest_defs.o test_helper.o test_grid_exec.o
 
 run_accept: accepttest
 	./run_accept
-
 
 clean:
 	rm -rf *~ *.o *.out $(bin_PROGRAMS) 
