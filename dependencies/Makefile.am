@@ -19,9 +19,10 @@ GEOMODELGRIDS_SRC=${srcdir}/geomodelgrids
 	$(MKDIR_P) geomodelgrids-build
 	cd ${abs_builddir}/geomodelgrids && \
 			cd ${abs_builddir}/geomodelgrids && \
-		libtoolize && \
+		rm -rf aclocal.m4 && \
+		libtoolize --force && \
 		aclocal -I m4 && \
-		autoupdate && \
+		autoheader && \
 		autoreconf -if && \
 		automake --add-missing -f
 	cd ${abs_builddir}/geomodelgrids-build && \
