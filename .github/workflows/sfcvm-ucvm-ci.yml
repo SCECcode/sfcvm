@@ -10,7 +10,6 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7]
-    if: false ## skip this one
     steps:
     - name: set UCVM_SRC_PATH 
       run: echo "UCVM_SRC_PATH=$RUNNER_WORKSPACE/sfcvm/ucvm" >> $GITHUB_ENV
