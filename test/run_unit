@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -z "${UCVM_INSTALL_PATH}"]; then
-  if [ -f ${UCVM_INSTALL_PATH}/conf/ucvm_env.sh ]; then
+  if [[ -d ${UCVM_INSTALL_PATH}/conf/ucvm_env.sh ]]; then
      source ${UCVM_INSTALL_PATH}/conf/ucvm_env.sh
      ./unittest
     exit
