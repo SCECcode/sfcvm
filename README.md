@@ -1,5 +1,7 @@
 # San Francisco Community Velocity Model (sfcvm)
 
+<a href="https://github.com/sceccode/sfcvm.git"><img src="https://github.com/sceccode/sfcvm/wiki/images/sfcvm_logo.png"></a>
+
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 ![GitHub repo size](https://img.shields.io/github/repo-size/sceccode/sfcvm)
 [![sfcvm-ucvm-ci Actions Status](https://github.com/SCECcode/sfcvm/workflows/sfcvm-ucvm-ci/badge.svg)](https://github.com/SCECcode/sfcvm/actions)(linux only)
