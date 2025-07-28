@@ -8,6 +8,10 @@
 
 USGS San Francisco Bay region 3D seismic velocity model v21.1
 
+The USGS San Francisco Bay Region three-dimensional (3D) seismic velocity model includes a detailed domain covering the greater San Francisco Bay urban region and a regional domain at a coarser resolution covering a larger region. Version 21.1 updates only the detailed domain with adjustments to the elastic properties east and north of the San Francisco Bay. There are no changes to the underlying 3D geologic model or the regional domain seismic velocity model. Version 21.1 of the detailed domain fits seamlessly inside version 21.0 of the regional domain without any jumps in elastic properties across the boundary between the two domains. The model was constructed by assigning elastic properties (density, Vp, Vs, Qp, and Qs) to grids of points based on the geologic unit and depth from the ground surface.
+
+Aagaard, B.T., and Hirakawa, E.T., 2021, San Francisco Bay region 3D seismic velocity model v21.1: U.S. Geological Survey data release, https://doi.org/10.5066/P9TRDCHE
+
 ## Installation
 
 This package is intended to be installed as part of the UCVM framework,
