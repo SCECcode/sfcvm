@@ -11,7 +11,7 @@ AC_PROG_CXX
 AC_PROG_MKDIR_P
 AC_PROG_INSTALL
 
-AC_PROG_LIBTOOL
+LT_INIT
 if test "$allow_undefined_flag" = unsupported; then
     # See issue119.
     AM_LDFLAGS="-no-undefined $AM_LDFLAGS"
