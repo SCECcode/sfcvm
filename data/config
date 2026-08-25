@@ -8,7 +8,7 @@ model_data_path = https://g-3a9041.a78b8.36fe.data.globus.org/ucvm/models
 depth = 45000
 
 # on or off
-gabbro = on
+gabbro = off
 
 # meter
 squashminelev = -45000
@@ -20,7 +20,7 @@ squashminelev = -45000
 ## Number of points: x=1351, y=2851
 ## Resolution: x=100, y=100
 ## <coordinates>-121.8935,36.3472,0 -120.6609,37.0508,0 -122.5484,39.1414,0 -123.7983,38.4183,0 -121.8935,36.3472,0</coordinates>
-data_file = { "LABEL" : "sfcvm", "FILE" : "USGS_SFCVM_v21-1_detailed.h5", "GRIDHEIGHT": 25 }
+data_file = { "LABEL" : "sfcvm", "FILE" : "USGS_SFCVM_v26-0_detailed.h5", "GRIDHEIGHT": 25 }
 ## Origin: x=97513.8, y=4562.2
 ## Number of points: x=651, y=1291
 ## Resolution: x=500, y=500
