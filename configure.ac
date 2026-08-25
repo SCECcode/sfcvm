@@ -3,7 +3,7 @@
 
 AC_INIT([SFCVM],[1.0],[software@scec.org])
 AM_INIT_AUTOMAKE([foreign no-exeext])
-AC_CONFIG_MACRO_DIRS([m4])
+AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
 AC_PROG_CC
