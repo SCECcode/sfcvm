@@ -1,8 +1,8 @@
 # Autoconf/automake file
 
 # General compiler/linker flags
-AM_CFLAGS = ${CFLAGS} -I$(prefix)/include 
-AM_LDFLAGS = ${LDFLAGS} -L$(prefix)/lib -lm -lgeomodelgrids
+AM_CFLAGS = ${CFLAGS} ${OPENSSL_INCLUDES} ${PROJ_INCLUDES} ${HDF5_INCLUDES} ${GEOMODELGRIDS_INCLUDES}
+AM_LDFLAGS = ${LDFLAGS} ${OPENSSL_LDFLAGS} ${PROJ_LDFLAGS} ${HDF5_LDFLAGS} ${GEOMODELGRIDS_LDFLAGS}
 
 TARGETS = sfcvm_query libsfcvm.a libsfcvm.so
 
