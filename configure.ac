@@ -19,37 +19,171 @@ fi
 AM_CONDITIONAL([NO_UNDEFINED], [test "$allow_undefined_flag" = unsupported])
 AC_SUBST(AM_LDFLAGS)
 
-
-# Checks for libraries.
-
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
-if test x"$UCVM_INSTALL_PATH" = x; then
-    UCVM_DUMDUM=x"$UCVM_INSTALL_PATH"
-    UCVM_DUM=x"$UCVM_SRC_PATH"
+# Checks for libraries.
+
+dnl OPENSSL
+AC_ARG_ENABLE([openssl],
+    [AC_HELP_STRING([--enable-openssl],
+        [install openSSL  @<:@default=yes@:>@])],
+        [if test "$enableval" = "yes" ; then install_openssl=yes; else install_openssl=no; fi],
+        [install_openssl=yes])
+AM_CONDITIONAL([INSTALL_OPENSSL], [test "$install_openssl" = yes])
+AC_ARG_WITH([openssl-incdir],
+    [AC_HELP_STRING([--with-openssl-incdir], [directory containing openSSL header files @<:@default=no@:>@])],
+        [with_openssl_incdir="$withval"],
+        [with_openssl_incdir=no])
+AC_SUBST(with_openssl_incdir)
+AC_ARG_WITH([openssl-libdir],
+    [AC_HELP_STRING([--with-openssl-libdir], [directory containing openSSL library @<:@default=no@:>@])],
+        [with_opensssl_libdir="$withval"],
+        [with_openssl_libdir=no])
+AC_SUBST(with_openssl_libdir)
+
+
+dnl HDF5
+AC_ARG_ENABLE([hdf5],
+    [AC_HELP_STRING([--enable-hdf5],
+        [install HDF5  @<:@default=yes@:>@])],
+        [if test "$enableval" = "yes" ; then install_hdf5=yes; else install_hdf5=no; fi],
+        [install_hdf5=yes])
+AM_CONDITIONAL([INSTALL_OPENSSL], [test "$install_hdf5" = yes])
+AC_ARG_WITH([hdf5-incdir],
+    [AC_HELP_STRING([--with-hdf5-incdir], [directory containing HDF5 header files @<:@default=no@:>@])],
+        [with_hdf5_incdir="$withval"],
+        [with_hdf5_incdir=no])
+AC_SUBST(with_hdf5_incdir)
+AC_ARG_WITH([hdf5-libdir],
+    [AC_HELP_STRING([--with-hdf5-libdir], [directory containing openSSL library @<:@default=no@:>@])],
+        [with_hdf5_libdir="$withval"],
+        [with_hdf5_libdir=no])
+AC_SUBST(with_hdf5_libdir)
+
+dnl PROJ
+AC_ARG_ENABLE([proj],
+    [AC_HELP_STRING([--enable-proj],
+        [install Proj @<:@default=yes@:>@])],
+        [if test "$enableval" = "yes" ; then install_proj=yes; else install_proj=no; fi],
+        [install_proj=yes])
+AM_CONDITIONAL([INSTALL_PROJ], [test "$install_proj" = yes])
+AC_ARG_WITH([proj-incdir],
+    [AC_HELP_STRING([--with-proj-incdir], [directory containing Proj header files @<:@default=no@:>@])],
+        [with_proj_incdir="$withval"],
+        [with_proj_incdir=no])
+AC_SUBST(with_proj_incdir)
+AC_ARG_WITH([proj-libdir],
+    [AC_HELP_STRING([--with-proj-libdir], [directory containing Proj library @<:@default=no@:>@])],
+        [with_proj_libdir="$withval"],
+        [with_proj_libdir=no])
+AC_SUBST(with_proj_libdir)
+
+
+dnl
+dnl Setup environment so dependencies are used in build
+dnl
+
+CFLAGS="$CFLAGS"
+CPPFLAGS="-I$prefix/include $CPPFLAGS"
+LDFLAGS="-L$prefix/lib -L$prefix/lib64 $LDFLAGS"
+
+dnl HDF5 (required)
+if test "$install_hdf5" = yes ; then
+  dnl proj (required by hdf5)
+  if test "$install_proj" = yes ; then
+    PROJ_INCLUDES="-I$prefix/include"
+    PROJ_LDFLAGS="-L$prefix/lib -lproj -lpthread"
+    PROJ_INC="$prefix/include"
+    PROJ_LIB="$prefix/lib"
+  else
+    PROJ_INCLUDES=
+    PROJ_INC=
+    PROJ_LDFLAGS=
+    PROJ_LIB=
+  fi
+
+  if test "$with_proj_incdir" != no; then
+    PROJ_INCLUDES="-I$with_proj_incdir"
+    PROJ_INC="$with_proj_incdir"
+  fi
+  if test "$with_proj_libdir" != no; then
+    PROJ_LDFLAGS="-L$with_proj_libdir -lproj -lpthread"
+    PROJ_LIB="$with_proj_libdir"
+  fi
+  AC_SUBST(PROJ_INCLUDES)
+  AC_SUBST(PROJ_INC)
+  AC_SUBST(PROJ_LDFLAGS)
+  AC_SUBST(PROJ_LIB)
+
+  HDF5_INCLUDES="-I$prefix/include"
+  HDF5_INC="$prefix/include"
+  HDF5_LDFLAGS="-L$prefix/lib -lhdf5"
+
+  HDF5_LIB="$prefix/lib"
+else
+  HDF5_INCLUDES=
+  HDF5_INC=
+  HDF5_LDFLAGS=
+  HDF5_LIB=
 fi
+
+if test "$with_hdf5_incdir" != no ; then
+  HDF5_INCLUDES="-I$with_hdf5_incdir"
+  HDF5_INC="$with_hdf5_incdir"
+fi
+if test "$with_hdf5_libdir" != no ; then
+  HDF5_LDFLAGS="-L$with_hdf5_libdir -lhdf5"
+  HDF5_LIB="$with_hdf5_libdir"
+fi
+AC_SUBST(HDF5_INCLUDES)
+AC_SUBST(HDF5_INC)
+AC_SUBST(HDF5_LDFLAGS)
+AC_SUBST(HDF5_LIB)
+
+
+if test "$install_openssl" = yes ; then
+  OPENSSL_LDFLAGS="-L$prefix/lib -lssl -lcrytpo"
+else
+  OPENSSL_LDFLAGS=
+fi
+
+if test "$with_openssl_incdir" != no ; then
+  OPENSSL_INCLUDES="-I$with_openssl_incdir"
+  OPENSSL_INC="$with_openssl_incdir"
+fi
+if test "$with_openssl_libdir" != no ; then
+  OPENSSL_LDFLAGS="-L$with_openssl_libdir -lssl -lcrypto"
+  OPENSSL_LIB="$with_openssl_libdir"
+fi
+
+AC_SUBST(OPENSSL_INCLUDES)
+AC_SUBST(OPENSSL_INC)
+AC_SUBST(OPENSSL_LDFLAGS)
+AC_SUBST(OPENSSL_LIB)
 
 if test x"$UCVM_INSTALL_PATH" = x; then
 AM_CONDITIONAL(UCVM, false)
-UCVM_CFLAGS=
-UCVM_LDFLAGS=
 UCVM_HDF5_INC=
 UCVM_HDF5_LIB=
 UCVM_PROJ_INC=
 UCVM_PROJ_LIB=
+UCVM_OPENSSL_INC=
+UCVM_OPENSSL_LIB=
 else
 AM_CONDITIONAL(UCVM, true)
-UCVM_CFLAGS="-I$UCVM_INSTALL_PATH/include"
-UCVM_LDFLAGS="-L$UCVM_INSTALL_PATH/lib -lucvm -dynamic -L$UCVM_INSTALL_PATH/lib/proj/lib -lproj -lpthread -L$UCVM_INSTALL_PATH/lib/hdf5/lib -lhdf5 -lm -ldl"
-UCVM_HDF5_INC=$UCVM_INSTALL_PATH/lib/hdf5/include
-UCVM_HDF5_LIB=$UCVM_INSTALL_PATH/lib/hdf5/lib
-UCVM_PROJ_INC=$UCVM_INSTALL_PATH/lib/proj/include
-UCVM_PROJ_LIB=$UCVM_INSTALL_PATH/lib/proj/lib
-AC_SUBST(UCVM_PROJ_INC)
-AC_SUBST(UCVM_PROJ_LIB)
+UCVM_HDF5_INC=$HDF5_INC
+UCVM_HDF5_LIB=$HDF5_LIB
+UCVM_PROJ_INC=$PROJ_INC
+UCVM_PROJ_LIB=$PROJ_LIB
+UCVM_OPENSSL_INC=$OPENSSL_INC
+UCVM_OPENSSL_LIB=$OPENSSL_LIB
 AC_SUBST(UCVM_HDF5_INC)
 AC_SUBST(UCVM_HDF5_LIB)
+AC_SUBST(UCVM_PROJ_INC)
+AC_SUBST(UCVM_PROJ_LIB)
+AC_SUBST(UCVM_OPENSSL_INC)
+AC_SUBST(UCVM_OPENSSL_LIB)
 fi
 
 ## dependencies
