@@ -20,7 +20,9 @@ libtoolize --copy --force
 aclocal -I m4
 autoreconf -i -f
 automake --add-missing --force-missing
+
 ./configure --prefix=$UCVM_INSTALL_PATH/model/sfcvm --with-proj-libdir=$UCVM_INSTALL_PATH/lib/proj/lib --with-proj-incdir=$UCVM_INSTALL_PATH/lib/proj/include --with-hdf5-libdir=$UCVM_INSTALL_PATH/lib/hdf5/lib --with-hdf5-incdir=$UCVM_INSTALL_PATH/lib/hdf5/include --with-openssl-libdir=$UCVM_INSTALL_PATH/lib/openssl/lib --with-openssl-incdir=$UCVM_INSTALL_PATH/lib/openssl/include
+
 make
 make install
 
