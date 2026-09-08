@@ -33,12 +33,6 @@ jobs:
          initiating-repo: 'sfcvm'
          target-model: 'sfcvm'
          target-branch: 'main'
-#   - name: Start SSH debug with tmate
-#     uses: mxschmitt/action-tmate@v3
-#     with:
-#        limit-access-to-actor: true
-#   - name: sleep to keep runner alive
-#     run: sleep 3600
     - name: move stock sfcvm away
       run: (rm -rf $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm)
       shell: bash
@@ -54,20 +48,13 @@ jobs:
       run: (cd $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm; ./.github/scripts/sfcvm-build.sh)
       shell: bash
     - name: Start SSH debug with upterm for sfcvm github
+      if: ${{ failure() }}
       uses: owenthereal/action-upterm@v1
       with:
         limit-access-to-actor: true
         wait-timeout-minutes: 60
-#    - name: Start SSH debug with tmate for sfcvm github
-#      if: ${{ failure() }}
-#      uses: mxschmitt/action-tmate@v3
-#      with:
-#        detached: false
-#        install-dependencies: true
-#        limit-access-to-actor: true
-#        sudo : auto
-    - name: sleep to keep runner alive
-      run: sleep 3600
+#    - name: sleep to keep runner alive
+#      run: sleep 3600
 ### check ucvm is still valid
     - name: check on ucvm
       run: (source $UCVM_INSTALL_PATH/conf/ucvm_env.sh; ucvm_query -H)
@@ -93,12 +80,6 @@ jobs:
       run: echo "UCVM_SRC_PATH=$RUNNER_WORKSPACE/sfcvm/ucvm" >> $GITHUB_ENV
     - name: set UCVM_INSTALL_PATH 
       run: echo "UCVM_INSTALL_PATH=$RUNNER_WORKSPACE/sfcvm/target" >> $GITHUB_ENV
-#   - name: Start SSH debug with tmate
-#     uses: mxschmitt/action-tmate@v3
-#     with:
-#       limit-access-to-actor: true
-#   - name: sleep to keep runner alive
-#     run: sleep 3600
     - name: load python pkgs
       run: (pipx install --include-deps scipy h5py numpy pandas pybind11)
       shell: bash
@@ -116,12 +97,6 @@ jobs:
          initiating-repo: 'sfcvm'
          target-model: 'sfcvm'
          target-branch: 'main'
-#   - name: Start SSH debug with tmate
-#     uses: mxschmitt/action-tmate@v3
-#     with:
-#        limit-access-to-actor: true
-#   - name: sleep to keep runner alive
-#     run: sleep 3600
     - name: move stock sfcvm away
       run: (rm -rf $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm)
       shell: bash
