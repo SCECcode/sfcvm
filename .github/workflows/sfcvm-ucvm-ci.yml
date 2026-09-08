@@ -58,8 +58,9 @@ jobs:
       uses: mxschmitt/action-tmate@v3
       with:
         detached: false
-        install-dependencies: false
+        install-dependencies: true
         limit-access-to-actor: true
+        sudo : auto
     - name: sleep to keep runner alive
       run: sleep 3600
 ### check ucvm is still valid
