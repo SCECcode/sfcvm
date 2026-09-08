@@ -6,7 +6,7 @@ AM_FCFLAGS = ${FCFLAGS}
 AM_LDFLAGS = ${LDFLAGS}
 
 all:
-if WITH_SFCVM_LARGEDATA_DIR_X
+if WITH_SFCVM_LARGEDATA_DIR
 	echo "USING WITH_SFCVM_LARGEDATA_DIR in sfcvm"
 else
 	if [ ! -d "sfcvm" ]; then \
