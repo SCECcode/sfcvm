@@ -6,11 +6,18 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/sceccode/sfcvm)
 [![sfcvm-ucvm-ci Actions Status](https://github.com/SCECcode/sfcvm/workflows/sfcvm-ucvm-ci/badge.svg)](https://github.com/SCECcode/sfcvm/actions)(linux only)
 
-USGS San Francisco Bay region 3D seismic velocity model v21.1
+USGS San Francisco Bay region 3D seismic velocity model v26.0
 
-The USGS San Francisco Bay Region three-dimensional (3D) seismic velocity model includes a detailed domain covering the greater San Francisco Bay urban region and a regional domain at a coarser resolution covering a larger region. Version 21.1 updates only the detailed domain with adjustments to the elastic properties east and north of the San Francisco Bay. There are no changes to the underlying 3D geologic model or the regional domain seismic velocity model. Version 21.1 of the detailed domain fits seamlessly inside version 21.0 of the regional domain without any jumps in elastic properties across the boundary between the two domains. The model was constructed by assigning elastic properties (density, Vp, Vs, Qp, and Qs) to grids of points based on the geologic unit and depth from the ground surface.
+The USGS San Francisco Bay Region three-dimensional (3D) seismic velocity model includes a detailed domain covering the greater San Francisco Bay urban region and a regional domain at a coarser resolution covering a larger region. Version 26.0 updates only the detailed domain with adjustments to the elastic properties east and north of the San Francisco Bay. There are no changes to the underlying 3D geologic model or the regional domain seismic velocity model. Version 26.0 of the detailed domain fits seamlessly inside version 21.0 of the regional domain without any jumps in elastic properties across the boundary between the two domains. The model was constructed by assigning elastic properties (density, Vp, Vs, Qp, and Qs) to grids of points based on the geologic unit and depth from the ground surface.
+
+Hirakawa, E.T., and Aagaard, B.T., 2026, San Francisco Bay region 3D seismic velocity model v26.0: U.S. Geological Survey data release, https://doi.org/10.5066/P13AEJFI
 
 Aagaard, B.T., and Hirakawa, E.T., 2021, San Francisco Bay region 3D seismic velocity model v21.1: U.S. Geological Survey data release, https://doi.org/10.5066/P9TRDCHE
+
+The model is stored in HDF5 files using the GeoModelGrids (https://geomodelgrids.readthedocs.io) storage scheme. GeoModelGrids
+provides a high-level interface for accessing the model. The model can also be accessed using the HDF5 application programming
+interface provided with many programming languages and tools, but the user will be responsible for all coordinate
+transformations.
 
 ## Installation
 
@@ -36,7 +43,7 @@ To install this package on your computer, please run the following commands:
   aclocal -I m4
   autoreconf -i -f
   automake --add-missing --force-missing
-  ./configure --prefix=/path/to/install
+  ./configure --prefix=/path/to/install ...
   cd data; ./make_data_files.py 
   make
   make install
