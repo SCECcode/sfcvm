@@ -1,0 +1,44 @@
+trying with sfcvm/geomodelgrid with macos
+
+on github action's mac runner
+
+... another try with 
+
+sudo ln -s $(which glibtoolize) ~/bin
+brew install python-setuptools
+CC == stdnxx
+brew install pybind11
+export HOMEBREW_NO_PATH_SHADOW_CHECK=1
+brew install numpy
+
+.. h5py,
+
+--->
+sjc22-be110-c985f26b-e2cd-45ca-8e0c-a30730531d96-2E70CE6A3136:geomodelgrids-build runner$ pipx install h5p
+y'h5py' (3.16.0) already seems to be installed. Not
+modifying existing installation in '/Users/runner/.local/pipx/venvs/h5py'.
+Pass '--force' to force installation, or use
+'pipx upgrade h5py' to upgrade.
+
+
+turns out they are installed into an environment..
+
+ooks search is not picking up sjc22-be110-c985f26b-e2cd-45ca-8e0c-a30730531d96-2E70CE6A3136:geomodelgrids-
+build runner$ pipx install h5py'h5py' (3.16.0) already seems to be installed. Not
+modifying existing installation in '/Users/runner/.local/pipx/venvs/h5py'.
+Pass '--force' to force installation, or use
+'pipx upgrade h5py' to upgrade. 
+
+
+sjc22-be110-c985f26b-e2cd-45ca-8e0c-a30730531d96-2E70CE6A3136:pipx runner$ pwd
+/Users/runner/.local/pipx
+sjc22-be110-c985f26b-e2cd-45ca-8e0c-a30730531d96-2E70CE6A3136:pipx runner$ ls venvs
+h5py            numpy           pandas          pybind11        scipy
+
+--> calling r at geomodelgrids-build
+ CC="gcc -std=gnu23" CXX=g++ CPPFLAGS="-I/Users/runner/work/sfcvm/sfcvm/target/model/sfcvm/include " CFLAGS="-g -O2" CXXFLAGS="-Wall -std=c++14" LDFLAGS="-L/Users/runner/work/sfcvm/sfcvm/target/model/sfcvm/lib -L/Users/runner/work/sfcvm/sfcvm/target/model/sfcvm/lib64  -lm" /Users/runner/work/sfcvm/sfcvm/ucvm/work/model/sfcvm/dependencies/geomodelgrids/configure \
+                        --prefix=/Users/runner/work/sfcvm/sfcvm/target/model/sfcvm \
+                        --enable-python \
+                        --with-hdf5-incdir=/Users/runner/work/sfcvm/sfcvm/target/lib/hdf5/include --with-hdf5-libdir=/Users/runner/work/sfcvm/sfcvm/target/lib/hdf5/lib \
+                        --with-proj-incdir=/Users/runner/work/sfcvm/sfcvm/target/lib/proj/include --with-proj-libdir=/Users/runner/work/sfcvm/sfcvm/target/lib/proj/lib;
+

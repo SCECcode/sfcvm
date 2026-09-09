@@ -7,7 +7,7 @@ on:
 
 jobs:
   sfcvm-build-ucvm-linux:
-    needs: [sfcvm-build-ucvm-mac]
+#    needs: [sfcvm-build-ucvm-mac]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -74,9 +74,9 @@ jobs:
       run: (cd $RUNNER_WORKSPACE/sfcvm/ucvm; source $UCVM_INSTALL_PATH/conf/ucvm_env.sh; ./.github/scripts/ucvm-test.sh)
       shell: bash
 
-## Would require upgrading geomodelgrid's python code to get it to work with MacOS
+## Needs some tweaks to get geomodelgrids to install on MacOS
   sfcvm-build-ucvm-mac:
-#   if: false ## skip this one
+    if: false ## skip this one
 #    if: ${{ success() }}
 #    needs: [sfcvm-build-ucvm-linux]
     runs-on: macos-latest
