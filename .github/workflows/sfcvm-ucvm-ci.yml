@@ -7,6 +7,7 @@ on:
 
 jobs:
   sfcvm-build-ucvm-linux:
+    needs: [sfcvm-build-ucvm-mac]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -76,8 +77,8 @@ jobs:
 ## Would require upgrading geomodelgrid's python code to get it to work with MacOS
   sfcvm-build-ucvm-mac:
 #   if: false ## skip this one
-    if: ${{ success() }}
-    needs: [sfcvm-build-ucvm-linux]
+#    if: ${{ success() }}
+#    needs: [sfcvm-build-ucvm-linux]
     runs-on: macos-latest
     strategy:
       matrix:
@@ -104,6 +105,13 @@ jobs:
          initiating-repo: 'sfcvm'
          target-model: 'sfcvm'
          target-branch: 'main'
+    - name: Start SSH debug with upterm for sfcvm github
+      uses: owenthereal/action-upterm@v1
+      with:
+        limit-access-to-actor: true
+        wait-timeout-minutes: 60
+    - name: sleep to keep runner alive
+      run: sleep 3600
     - name: move stock sfcvm away
       run: (rm -rf $RUNNER_WORKSPACE/sfcvm/ucvm/work/model/sfcvm)
       shell: bash
