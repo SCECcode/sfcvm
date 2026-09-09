@@ -75,9 +75,9 @@ jobs:
 
 ## Would require upgrading geomodelgrid's python code to get it to work with MacOS
   sfcvm-build-ucvm-mac:
-    if: false ## skip this one
-#   if: ${{ success() }}
-#   needs: [sfcvm-build-ucvm-linux]
+#   if: false ## skip this one
+    if: ${{ success() }}
+    needs: [sfcvm-build-ucvm-linux]
     runs-on: macos-latest
     strategy:
       matrix:
