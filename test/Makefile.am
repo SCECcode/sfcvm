@@ -2,9 +2,10 @@
 
 bin_PROGRAMS = unittest accepttest
 
-AM_CFLAGS = ${CFLAGS} -DDYNAMIC_LIBRARY -I../src -Wall -std=c99
-AM_LDFLAGS = ${LDFLAGS} -L../src -lsfcvm -L$(prefix)/lib -lm -lgeomodelgrids -ldl
-AM_CPPFLAGS = -I$(prefix)/include
+AM_CFLAGS = -DDYNAMIC_LIBRARY ${CFLAGS} ${OPENSSL_INCLUDES} ${PROJ_INCLUDES} ${HDF5_INCLUDES} ${GEOMODELGRIDS_INCLUDES} -I../src
+AM_LDFLAGS = ${LDFLAGS} ${OPENSSL_LDFLAGS} ${PROJ_LDFLAGS} ${HDF5_LDFLAGS} ${GEOMODELGRIDS_LDFLAGS} -L../src -lsfcvm -lm -ldl
+AM_CPPFLAGS = -I../src -I$(prefix)/include
+ 
 
 # Dist sources
 #unittest_SOURCES = *.c *.h
