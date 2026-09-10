@@ -2,9 +2,9 @@
 
 bin_PROGRAMS = geomodelgrids_query geomodelgrids_example
 
-AM_CFLAGS = -g -DDYNAMIC_LIBRARY -Wall -std=c99
-AM_LDFLAGS = -lm -ldl -L$(prefix)/lib -lgeomodelgrids
-AM_CPPFLAGS = -I$(prefix)/include
+AM_CFLAGS = -DDYNAMIC_LIBRARY ${CFLAGS} ${OPENSSL_INCLUDES} ${PROJ_INCLUDES} ${HDF5_INCLUDES} ${GEOMODELGRIDS_INCLUDES} -I../src
+AM_LDFLAGS = ${LDFLAGS} ${OPENSSL_LDFLAGS} ${PROJ_LDFLAGS} ${HDF5_LDFLAGS} ${GEOMODELGRIDS_LDFLAGS} -L../src -lsfcvm -lm -ldl
+AM_CPPFLAGS = -I../src -I$(prefix)/include
 
 TARGETS = $(bin_PROGRAMS)
 
